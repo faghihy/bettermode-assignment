@@ -4,7 +4,7 @@ import { Group } from './entities/group.entity';
 
 @Resolver()
 export class GroupsResolver {
-  constructor(private groupsService: GroupsResolver) {}
+  constructor(private groupsService: GroupsService) {}
 
   @Query(() => [Group])
   groups() {}
