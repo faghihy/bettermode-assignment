@@ -28,7 +28,7 @@ export class Tweet {
   hashtags: string[];
 
   @Column({ nullable: true })
-  calegory: string;
+  category: string;
 
   @Column({ nullable: true })
   location: string;
