@@ -7,8 +7,12 @@ export class UsersResolver {
   constructor(private usersService: UsersService) {}
 
   @Query(() => [User])
-  users() {}
+  users() {
+    return this.usersService.findAll();
+  }
 
   @Mutation(() => User)
-  createUser() {}
+  createUser(@Args('username') username: string) {
+    return this.usersService.create(username);
+  }
 }
