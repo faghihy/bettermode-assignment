@@ -30,13 +30,38 @@ This project impliments a permission and group system for X platform. Users can 
 
 1. Users
 
+- id: UUID
+- username: String
+
 2. Groups
+
+- id: UUID
+- name String
+- user_ids: JSONB
+- group_ids: JSONB
 
 3. tweets
 
+- id: UUID
+- author_id: UUID
+- content: Text
+- hashtags: JSONB
+- parent_tweet_id: UUID
+- category: Enum (Sport, Finance, Tech, News)
+- location: String
+- created_at: Timestamp
+
 4. Permissions
 
+- tweet_id: UUID
+- inherit_view_permissions: Boolian
+- inherit_edit_permissions: Boolian
+- view_permissions: JSONB
+- edit_permissions: JSONB
+
 ### API
+
+#### Some Examples...
 
 ### Trade-offs
 
