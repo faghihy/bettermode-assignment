@@ -7,4 +7,4 @@ import { Group } from './entities/group.entity';
   providers: [],
   exports: [],
 })
-export class UsersModule {}
+export class GroupsModule {}

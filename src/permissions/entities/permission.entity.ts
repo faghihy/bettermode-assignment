@@ -5,7 +5,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { Tweet } from 'src/tweets/entities/tweet.entity';
+import { Tweet } from '../../tweets/entities/tweet.entity';
 
 @Entity()
 export class Permission {

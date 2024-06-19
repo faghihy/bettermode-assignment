@@ -6,4 +6,4 @@ import { Tweet } from './entities/tweet.entity';
   imports: [TypeOrmModule.forFeature([Tweet])],
   providers: [],
 })
-export class UsersModule {}
+export class TweetsModule {}
