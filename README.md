@@ -59,9 +59,19 @@ This project impliments a permission and group system for X platform. Users can 
 - view_permissions: JSONB
 - edit_permissions: JSONB
 
-### API
+### API: GraphQL Schema
 
-#### Some Examples...
+```graphql
+type Query {
+  paginateTweets(userId: String!, limit: Int!, page: Int!): PaginatedTweet!
+  canEditTweet(userId: String, tweetId: String!): Boolean!
+}
+type Mutation {
+  createGroup(input: CreateGroup!): Group!
+  createTweet(input: CreateTwet!): Tweet!
+  updateTweetPermissions(input: UpdateTweetPermissions!): Boolean!
+}
+```
 
 ### Trade-offs
 
@@ -103,7 +113,7 @@ And run this:
 $ npm run migrate
 ```
 
-After all bu running this, you can see the result in [localhost:2222](http://localhost:2222):
+After all bu running this, you can see the result in [localhost:2222](http://localhost:2020):
 
 ```bash
 $ npm run start
