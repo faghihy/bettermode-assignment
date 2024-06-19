@@ -6,18 +6,25 @@
 
 # Bettermode
 
-<h2>Senior Back-End Engineer Project Assignment</h2>
+## Senior Back-End Engineer Project Assignment
 
-## Intro
-
-This project impliments a permission and group system for X platform. Users can create groups and set permissions on their posts to control view/edit abilities. This project using technologies like TS, NestJS, GraphQL, PostgrSQL and MongoDB as a NoSQL alternative for DB.
+This project impliments a permission and group system for X platform. Users can create groups and set permissions on their posts (tweets) to control view/edit abilities. This project using technologies like TS, NestJS, GraphQL, PostgrSQL and MongoDB as a NoSQL alternative for DB.
 
 ## Solution
 
+- Logic
 - Database
 - API
 - Trade-offs
 - Performance Considerations
+
+### Logic
+
+- [b]Group Management[/b]: Create/Mutating groups and add users/groups
+- [b]Permission Management[/b]: View/Edit and inheritence management
+- [b]Permission Check[/b]: View/Edit and inheritence check
+- [b]Tweet Creation[/b]: With or without parent
+- [b]Tweet Pagination[/b]: Sorted by time
 
 ### Database Schema
 
@@ -25,24 +32,64 @@ This project impliments a permission and group system for X platform. Users can 
 
 2. Groups
 
-3. Posts
+3. tweets
 
 4. Permissions
 
+### API
+
+### Trade-offs
+
+SQL vs NoSQL
+
+TypeORM vs Sequelize
+
+GraphQL vs REST
+
+Scalability VS Consistency
+
+### Performance Considerations
+
+Caching
+Careful indexing
+Optimized queries
+
 ## Installation and Running
 
+After cloning the repo, run this:
+
 ```bash
-$ npm install
+$ npm i
 ```
 
-To run:
+Create a .env file for database confing with the following content:
+
+```
+ATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USERNAME=yourusername
+DATABASE_PASSWORD=yourpassword
+DATABASE_NAME=twperm
+```
+
+And run this:
+
+```bash
+$ npm run migrate
+```
+
+After all bu running this, you can see the result in [localhost:2222](http://localhost:2222):
+
+```bash
+# To run the app
+$ npm run start
+```
+
+If you are curious about testing the project, you can run:
 
 ```bash
 # To run tests:
 $ npm run test
-
-# To run the app
-$ npm run start
 ```
 
 ## Author
