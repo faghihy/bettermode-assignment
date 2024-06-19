@@ -21,5 +21,5 @@ export class Group {
 
   @ManyToMany(() => Group)
   @JoinTable()
-  subGroup: Group[];
+  subGroups: Group[];
 }

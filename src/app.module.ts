@@ -26,7 +26,7 @@ import { PermissionModule } from './permissions/permissions.module';
       password: process.env.DATABASE_PASSWORD,
       database: 'twperm', // TODO: process.env.DATABASE_NAME
       entities: [User, Group, Tweet, Permission],
-      synchronize: false,
+      synchronize: true,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

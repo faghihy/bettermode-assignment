@@ -7,14 +7,27 @@ export class GroupsResolver {
   constructor(private groupsService: GroupsService) {}
 
   @Query(() => [Group])
-  groups() {}
+  groups() {
+    return this.groupsService.findAll();
+  }
 
   @Query(() => Group)
-  group() {}
+  group(@Args('id') id: string) {
+    return this.groupsService.findOne(id);
+  }
 
   @Mutation(() => Group)
-  createUser() {}
+  createGroup(
+    @Args('name') name: string,
+    @Args('userIds', { type: () => [String] }) userIds: string[],
+    @Args('groupIds', { type: () => [String], nullable: true })
+    groupIds: string[],
+  ) {
+    return this.groupsService.create(name, userIds, groupIds);
+  }
 
   @Query(() => [Group])
-  groupMembers() {}
+  groupMembers(@Args('groupId') groupIds: string) {
+    return this.groupsService;
+  }
 }
