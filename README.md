@@ -20,11 +20,11 @@ This project impliments a permission and group system for X platform. Users can 
 
 ### Logic
 
-- [b]Group Management[/b]: Create/Mutating groups and add users/groups
-- [b]Permission Management[/b]: View/Edit and inheritence management
-- [b]Permission Check[/b]: View/Edit and inheritence check
-- [b]Tweet Creation[/b]: With or without parent
-- [b]Tweet Pagination[/b]: Sorted by time
+- <b>Group Management</b>: Create/Mutating groups and add users/groups
+- <b>Permission Management</b>: View/Edit and inheritence management
+- <b>Permission Check</b>: View/Edit and inheritence check
+- <b>Tweet Creation</b>: With or without parent
+- <b>Tweet Pagination</b>: Sorted by time
 
 ### Database Schema
 
@@ -65,7 +65,7 @@ $ npm i
 Create a .env file for database confing with the following content:
 
 ```
-ATABASE_HOST=localhost
+DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_USERNAME=yourusername
 DATABASE_PASSWORD=yourpassword
@@ -81,14 +81,12 @@ $ npm run migrate
 After all bu running this, you can see the result in [localhost:2222](http://localhost:2222):
 
 ```bash
-# To run the app
 $ npm run start
 ```
 
 If you are curious about testing the project, you can run:
 
 ```bash
-# To run tests:
 $ npm run test
 ```
 
