@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 
 @Resolver()
-export class UserResolver {
+export class UsersResolver {
   constructor(private usersService: UsersService) {}
 
   @Query(() => [User])
