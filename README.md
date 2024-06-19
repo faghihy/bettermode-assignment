@@ -4,7 +4,9 @@
   </a>
 </p>
 
-<h1>Senior Back-End Engineer Project Assignment</h1>
+<h1>Bettermode</h1>
+
+<h2>Senior Back-End Engineer Project Assignment</h2>
 
 ## Intro
 
@@ -31,7 +33,7 @@ $ npm run test
 
 # To run the app
 $ npm run start
-
+```
 
 ## Author
 
@@ -40,4 +42,7 @@ $ npm run start
 ## License
 
 [MIT licensed](LICENSE).
+
+```
+
 ```
