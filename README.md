@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1>Bettermode</h1>
+# Bettermode
 
 <h2>Senior Back-End Engineer Project Assignment</h2>
 
@@ -18,6 +18,16 @@ This project impliments a permission and group system for X platform. Users can 
 - API
 - Trade-offs
 - Performance Considerations
+
+### Database Schema
+
+1. Users
+
+2. Groups
+
+3. Posts
+
+4. Permissions
 
 ## Installation and Running
 
@@ -38,11 +48,3 @@ $ npm run start
 ## Author
 
 [Amir Faghihi](https://faghihy.com)
-
-## License
-
-[MIT licensed](LICENSE).
-
-```
-
-```
