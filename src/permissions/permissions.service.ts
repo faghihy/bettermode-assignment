@@ -70,7 +70,7 @@ export class PermissionsService {
     });
 
     if (tweet.inheritEditPermissions && tweet.tweet.parentTweetId) {
-      return this.canEditTweet(userId, tweet.tweet.parentTweetId);
+      return this.canEdit(userId, tweet.tweet.parentTweetId);
     }
 
     if (tweet.editPermissions.includes(userId)) {

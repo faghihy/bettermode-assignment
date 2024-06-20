@@ -27,7 +27,7 @@ export class GroupsResolver {
   }
 
   @Query(() => [Group])
-  groupMembers(@Args('groupId') groupIds: string) {
-    return this.groupsService;
+  groupMembers(@Args('groupId') groupId: string) {
+    return this.groupsService.getAllMembers(groupId);
   }
 }

@@ -24,12 +24,12 @@ export class GroupsService {
 
   async create(
     name: string,
-    userIds: string,
+    userIds: string[],
     groupIds: string[],
   ): Promise<Group> {
     const group = this.groupsRepository.create({ name });
-    group.users = await this.groupsRepository.manager.findBy(User, userIds); // TODO
-    group.subGroups = await this.groupsRepository.findBy(groupIds); // TODO
+    group.users = await this.groupsRepository.manager.findByIds(User, userIds); // TODO
+    group.subGroups = await this.groupsRepository.findByIds(groupIds); // TODO
     return this.groupsRepository.save(group);
   }
 
