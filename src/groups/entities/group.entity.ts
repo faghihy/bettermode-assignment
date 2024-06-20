@@ -6,8 +6,10 @@ import {
   JoinTable,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { ObjectType } from '@nestjs/graphql';
 
 @Entity()
+@ObjectType()
 export class Group {
   @PrimaryGeneratedColumn('uuid')
   id: string;

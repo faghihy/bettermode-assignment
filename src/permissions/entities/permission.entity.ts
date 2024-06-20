@@ -6,8 +6,10 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Tweet } from '../../tweets/entities/tweet.entity';
+import { ObjectType } from '@nestjs/graphql';
 
 @Entity()
+@ObjectType()
 export class Permission {
   @PrimaryGeneratedColumn('uuid')
   id: string;
