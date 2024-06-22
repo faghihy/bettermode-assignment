@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Tweet } from './entities/tweet.entity';
 import { TweetCategory } from './enums/category.enum';
 import { TweetPermissions } from './entities/tweet-permissions.entity';
+import { PaginatedTweet } from './types/paginated-tweet.type';
 
 @Injectable()
 export class TweetsService {
@@ -56,8 +57,7 @@ export class TweetsService {
     return result.length > 0 ? result[0].can_edit : false;
   }
 
-  async getTweets(page: number, limit: number): Promise<Tweet[]> {
-    const offset = (page - 1) * limit;
+  async getTweets(page: number, limit: number): Promise<PaginatedTweet> {
     const query = `
     WITH RECURSIVE UserGroups AS (
         -- Base case: Direct group memberships
@@ -101,7 +101,18 @@ export class TweetsService {
     LIMIT $1 OFFSET $2;
     `;
 
-    return this.tweetRepository.query(query, [limit, offset]);
+    const offset = (page - 1) * limit;
+    const [tweets, total] = await this.tweetRepository.query(query, [
+      limit,
+      offset,
+    ]);
+
+    const hasNextPage = page * limit < total;
+
+    return {
+      nodes: tweets,
+      hasNextPage,
+    };
   }
 
   async createTweet(

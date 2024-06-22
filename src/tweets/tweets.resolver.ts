@@ -1,15 +1,18 @@
-import { Param } from '@nestjs/common';
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { TweetsService } from './tweets.service';
 import { Tweet } from './entities/tweet.entity';
 import { TweetCategory } from './enums/category.enum';
+import { PaginatedTweet } from './types/paginated-tweet.type';
 
 @Resolver()
 export class TweetsResolver {
   constructor(private tweetsService: TweetsService) {}
 
-  @Query(() => [Tweet])
-  getTweets(@Param('page') page: number, @Param('limit') limit: number) {
+  @Query(() => PaginatedTweet)
+  async getTweets(
+    @Args('page') page: number,
+    @Args('limit') limit: number,
+  ): Promise<PaginatedTweet> {
     return this.tweetsService.getTweets(page, limit);
   }
 
