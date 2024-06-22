@@ -79,6 +79,79 @@ type Mutation {
 }
 ```
 
+#### Examples
+
+Creating a group:
+
+```graphql
+mutation {
+  createGroup(input: { userIds: ["user1", "user2"], groupIds: ["group1"] }) {
+    id
+    userIds
+    groupIds
+  }
+}
+```
+
+Creating a Tweet:
+
+```graphql
+mutation {
+  createTweet(
+    input: {
+      authorId: "author1"
+      content: "This is a new tweet"
+      hashtags: ["#example"]
+      parentTweetId: null
+      category: Tech
+      location: "San Francisco"
+    }
+  ) {
+    id
+    createdAt
+    authorId
+    content
+  }
+}
+```
+
+Updating Tweet Permissions:
+
+```graphql
+mutation {
+  updateTweetPermissions(
+    input: {
+      inheritViewPermissions: false
+      inheritEditPermissions: true
+      viewPermissions: ["user1", "group1"]
+      editPermissions: []
+    }
+  )
+}
+```
+
+Paginating Tweets:
+
+```graphql
+query {
+  paginateTweets(userId: "user1", limit: 10, page: 1) {
+    nodes {
+      id
+      content
+    }
+    hasNextPage
+  }
+}
+```
+
+Checking Edit Permissions:
+
+```graphql
+query {
+  canEditTweet(userId: "user1", tweetId: "tweet1")
+}
+```
+
 ### Trade-offs
 
 #### Flexibility vs. Consistency
