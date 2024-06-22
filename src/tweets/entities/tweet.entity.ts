@@ -5,17 +5,21 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { TweetPermissions } from './tweet-permissions.entity';
 
+@ObjectType()
 @Entity('tweets')
 export class Tweet {
+  @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Field()
   @Column()
   author: string;
 
+  @Field()
   @Column()
   content: string;
 

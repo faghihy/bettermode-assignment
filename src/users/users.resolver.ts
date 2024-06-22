@@ -4,11 +4,16 @@ import { User } from './entities/user.entity';
 
 @Resolver()
 export class UsersResolver {
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
-  @Query(() => [User])
-  users() {
+  @Query(() => [User], { name: 'users' })
+  findAll(): Promise<User[]> {
     return this.usersService.findAll();
+  }
+
+  @Query(() => [User], { name: 'users' })
+  findOne(@Args('id', { type: () => String }) id: number): Promise<User> {
+    return this.usersService.findOne(id);
   }
 
   @Mutation(() => User)

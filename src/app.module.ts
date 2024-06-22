@@ -2,6 +2,10 @@ import 'reflect-metadata';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { join } from 'path';
+
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
@@ -24,6 +28,10 @@ import { TweetPermissions } from './tweets/entities/tweet-permissions.entity';
       database: '5', // TODO: process.env.DATABASE_NAME
       entities: [User, Group, GroupMembers, Tweet, TweetPermissions],
       synchronize: true,
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
     UsersModule,
     GroupsModule,
