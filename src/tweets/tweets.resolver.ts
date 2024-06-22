@@ -1,14 +1,16 @@
+import { Param } from '@nestjs/common';
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { TweetsService } from './tweets.service';
 import { Tweet } from './entities/tweet.entity';
+import { TweetCategory } from './enums/category.enum';
 
 @Resolver()
 export class TweetsResolver {
   constructor(private tweetsService: TweetsService) {}
 
   @Query(() => [Tweet])
-  tweets() {
-    return this.tweetsService.findAll();
+  getTweets(@Param('page') page: number, @Param('limit') limit: number) {
+    return this.tweetsService.getTweets(page, limit);
   }
 
   @Mutation(() => Tweet)
@@ -17,10 +19,10 @@ export class TweetsResolver {
     @Args('content') content: string,
     @Args('hashtags', { type: () => [String], nullable: true })
     hashtags: string[],
-    @Args('category', { nullable: true }) category: string,
+    @Args('category', { nullable: true }) category: TweetCategory,
     @Args('location', { nullable: true }) location: string,
   ) {
-    return this.tweetsService.create(
+    return this.tweetsService.createTweet(
       authorId,
       content,
       hashtags,

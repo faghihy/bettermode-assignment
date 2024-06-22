@@ -2,22 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tweet } from './entities/tweet.entity';
+import { TweetCategory } from './enums/category.enum';
 import { TweetPermissions } from './entities/tweet-permissions.entity';
 
 @Injectable()
 export class TweetsService {
-  create(
-    authorId: string,
-    content: string,
-    hashtags: string[],
-    category: string,
-    location: string,
-  ) {
-    throw new Error('Method not implemented.');
-  }
-  findAll() {
-    throw new Error('Method not implemented.');
-  }
   constructor(
     @InjectRepository(Tweet)
     private tweetRepository: Repository<Tweet>,
@@ -109,9 +98,26 @@ export class TweetsService {
     )
     SELECT DISTINCT tweet_id
     FROM ViewableTweets
-    LIMIT ${limit} OFFSET ${offset};
+    LIMIT $1 OFFSET $2;
     `;
 
-    return this.tweetRepository.query(query);
+    return this.tweetRepository.query(query, [limit, offset]);
+  }
+
+  async createTweet(
+    authorId: string,
+    content: string,
+    hashtags: string[],
+    category: TweetCategory,
+    location: string,
+  ): Promise<Tweet> {
+    const newTweet = this.tweetRepository.create({
+      authorId,
+      content,
+      hashtags,
+      category,
+      location,
+    });
+    return this.tweetRepository.save(newTweet);
   }
 }

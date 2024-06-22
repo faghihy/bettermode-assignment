@@ -4,14 +4,14 @@
 
 type Tweet {
   id: ID!
-  author: String!
+  authorId: String!
   content: String!
 }
 
 type Query {
-  tweets: [Tweet!]!
+  getTweets: [Tweet!]!
 }
 
 type Mutation {
-  createTweet(authorId: String!, content: String!, hashtags: [String!], category: String, location: String): Tweet!
+  createTweet(authorId: String!, content: String!, hashtags: [String!], category: Float, location: String): Tweet!
 }
