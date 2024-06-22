@@ -15,10 +15,13 @@ export class GroupsService {
     return this.groupsRepository.find();
   }
 
-  findOne(id: string): Promise<Group> {
+  findOne(
+    id: string,
+    relations: string[] = ['users', 'suGroups'],
+  ): Promise<Group> {
     return this.groupsRepository.findOne({
       where: { id },
-      relations: ['users', 'suGroups'],
+      relations,
     });
   }
 
@@ -33,19 +36,16 @@ export class GroupsService {
     return this.groupsRepository.save(group);
   }
 
-  async getAllMembers(groupId: string): Promise<User[]> {
-    const group = await this.findOne(groupId);
-    const members = new Set<User>();
+  async getAllGroupMembers(groupId: string): Promise<User[]> {
+    const group = await this.findOne(groupId, {
+      relations: ['users', 'subGroups'],
+    });
+    const members = [...group.users];
 
-    const collectMembers = async (group: Group) => {
-      group.users.forEach((user) => members.add(user));
-      for (const subGroup of group.subGroups) {
-        const fullSubGroup = await this.findOne(subGroup.id);
-        await collectMembers(fullSubGroup);
-      }
-    };
-
-    await collectMembers(group);
-    return Array.from(members);
+    for (const subGroup of group.subGroups) {
+      const subGroupMembers = await this.getAllGroupMembers(subGroup.id);
+      members.push(...subGroupMembers);
+    }
+    return members;
   }
 }
