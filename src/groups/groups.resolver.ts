@@ -12,22 +12,22 @@ export class GroupsResolver {
   }
 
   @Query(() => Group)
-  group(@Args('id') id: string) {
+  group(@Args('id') id: number) {
     return this.groupsService.findOne(id);
   }
 
   @Mutation(() => Group)
   createGroup(
     @Args('name') name: string,
-    @Args('userIds', { type: () => [String] }) userIds: string[],
+    @Args('userIds', { type: () => [String] }) userIds: number[],
     @Args('groupIds', { type: () => [String], nullable: true })
-    groupIds: string[],
+    groupIds: number[],
   ) {
     return this.groupsService.create(name, userIds, groupIds);
   }
 
   @Query(() => [Group])
-  groupMembers(@Args('groupId') groupId: string) {
-    return this.groupsService.getAllMembers(groupId);
+  groupMembers(@Args('groupId') groupId: number) {
+    return this.groupsService.getAllGroupMembers(groupId);
   }
 }

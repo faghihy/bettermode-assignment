@@ -3,36 +3,34 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { InputType, ObjectType } from '@nestjs/graphql';
+import { TweetPermission } from './tweet-permissions.entity';
 
 @Entity()
-@ObjectType()
-@InputType()
 export class Tweet {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(() => User, (user) => user.tweets)
+  author: User;
 
   @Column()
   content: string;
 
-  @ManyToOne(() => User)
-  author: User;
+  @ManyToOne(() => Tweet, (tweet) => tweet.replies, { nullable: true })
+  parent: Tweet;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @OneToMany(() => Tweet, (tweet) => tweet.parent)
+  replies: Tweet[];
 
-  @Column({ nullable: true })
-  parentTweetId: string;
+  @Column({ default: true })
+  inheritViewPermission: boolean;
 
-  @Column({ type: 'simple-array', nullable: true })
-  hashtags: string[];
+  @Column({ default: true })
+  inheritEditPermission: boolean;
 
-  @Column({ nullable: true })
-  category: string;
-
-  @Column({ nullable: true })
-  location: string;
+  @OneToMany(() => TweetPermission, (permission) => permission.tweet)
+  permissions: TweetPermission[];
 }

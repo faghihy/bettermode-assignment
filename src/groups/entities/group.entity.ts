@@ -2,26 +2,29 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToMany,
-  JoinTable,
+  ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { ObjectType } from '@nestjs/graphql';
+import { GroupMember } from './group-members.entity';
 
 @Entity()
-@ObjectType()
 export class Group {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   name: string;
 
-  @ManyToMany(() => User)
-  @JoinTable()
-  users: User[];
+  @ManyToOne(() => User, (user) => user.groups)
+  owner: User;
 
-  @ManyToMany(() => Group)
-  @JoinTable()
+  @OneToMany(() => GroupMember, (groupMember) => groupMember.group)
+  members: GroupMember[];
+
+  @OneToMany(() => Group, (group) => group.parentGroup)
   subGroups: Group[];
+
+  @ManyToOne(() => Group, (group) => group.subGroups)
+  parentGroup: Group;
 }

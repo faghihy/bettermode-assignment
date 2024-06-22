@@ -1,20 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GraphQLModule } from '@nestjs/graphql';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { join } from 'path';
 
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
 import { Group } from './groups/entities/group.entity';
 import { GroupsModule } from './groups/groups.module';
+import { GroupMember } from './groups/entities/group-members.entity';
 
 import { Tweet } from './tweets/entities/tweet.entity';
 import { TweetsModule } from './tweets/tweets.module';
-
-import { Permission } from './permissions/entities/permission.entity';
-import { PermissionModule } from './permissions/permissions.module';
+import { TweetPermission } from './tweets/entities/tweet-permissions.entity';
 
 @Module({
   imports: [
@@ -24,18 +20,13 @@ import { PermissionModule } from './permissions/permissions.module';
       port: parseInt(process.env.DATABASE_PORT, 10),
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
-      database: 'twperm2', // TODO: process.env.DATABASE_NAME
-      entities: [User, Group, Tweet, Permission],
+      database: 'twperm3', // TODO: process.env.DATABASE_NAME
+      entities: [User, Group, GroupMember, Tweet, TweetPermission],
       synchronize: true,
-    }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
     UsersModule,
     GroupsModule,
     TweetsModule,
-    PermissionModule,
   ],
   controllers: [],
   providers: [],
