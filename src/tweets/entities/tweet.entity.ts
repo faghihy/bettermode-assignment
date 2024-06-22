@@ -6,7 +6,6 @@ import {
   OneToMany,
 } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { TweetPermissions } from './tweet-permissions.entity';
 import { TweetCategory } from '../enums/category.enum';
 
 @ObjectType()
@@ -48,6 +47,9 @@ export class Tweet {
   @Column({ default: true })
   inheritEditPermission: boolean;
 
-  @OneToMany(() => TweetPermissions, (permission) => permission.tweet)
-  permissions: TweetPermissions[];
+  @Column('simple-array', { nullable: true })
+  viewPermissions: string[];
+
+  @Column('simple-array', { nullable: true })
+  editPermissions: string[];
 }

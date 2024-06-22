@@ -6,6 +6,7 @@ import { TweetCategory } from './enums/category.enum';
 import { TweetPermissions } from './entities/tweet-permissions.entity';
 import { PaginatedTweet } from './types/paginated-tweet.type';
 import { FilterTweet } from './inputs/filter-tweet.input';
+import { UpdateTweetPermissions } from './inputs/update-tweet-permissions.input';
 
 @Injectable()
 export class TweetsService {
@@ -60,7 +61,7 @@ export class TweetsService {
     return result.length > 0;
   }
 
-  async canEditTweet(userId: number, tweetId: number): Promise<boolean> {
+  async canEditTweet(userId: string, tweetId: string): Promise<boolean> {
     const query = `
     WITH RECURSIVE UserGroups AS (
         SELECT gm.group_id, gm.user_id
@@ -104,7 +105,8 @@ export class TweetsService {
     return result.length > 0;
   }
 
-  async getTweets(
+  async paginateTweets(
+    userId: string,
     page: number,
     limit: number,
     filter: FilterTweet,
@@ -206,5 +208,24 @@ export class TweetsService {
       location,
     });
     return this.tweetRepository.save(newTweet);
+  }
+
+  async updateTweetPermissions(
+    tweetId: number,
+    updateTweetPermissions: UpdateTweetPermissions,
+  ): Promise<Tweet> {
+    const tweet = await this.tweetRepository.findOne({
+      where: { id: tweetId },
+    });
+    if (!tweet) {
+      throw new Error('Tweet not found');
+    }
+
+    tweet.inheritViewPermission = updateTweetPermissions.inheritViewPermissions;
+    tweet.inheritEditPermission = updateTweetPermissions.inheritEditPermissions;
+    tweet.viewPermissions = updateTweetPermissions.viewPermissions;
+    tweet.editPermissions = updateTweetPermissions.editPermissions;
+
+    return this.tweetRepository.save(tweet);
   }
 }

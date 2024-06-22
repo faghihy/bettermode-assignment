@@ -7,7 +7,7 @@ export class TweetPermissions {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Tweet, (tweet) => tweet.permissions)
+  @ManyToOne(() => Tweet, (tweet) => tweet.viewPermissions) // TODO
   tweet: Tweet;
 
   @Column({ nullable: true })

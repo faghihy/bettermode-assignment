@@ -8,10 +8,32 @@ type Tweet {
   content: String!
 }
 
+type PaginatedTweet {
+  nodes: [Tweet!]!
+  hasNextPage: Boolean!
+}
+
 type Query {
-  getTweets: [Tweet!]!
+  paginateTweets(userId: String!, page: Float!, limit: Float!, filter: FilterTweet): PaginatedTweet!
+  canEditTweet(userId: String!, tweetId: String!): Boolean!
+}
+
+input FilterTweet {
+  authorId: String
+  hashtag: String
+  parentTweetId: String
+  category: Float
+  location: String
 }
 
 type Mutation {
   createTweet(authorId: String!, content: String!, hashtags: [String!], category: Float, location: String): Tweet!
+  updateTweetPermissions(tweetId: Float!, updateTweetPermissions: UpdateTweetPermissions!): Tweet!
+}
+
+input UpdateTweetPermissions {
+  inheritViewPermissions: Boolean!
+  inheritEditPermissions: Boolean!
+  viewPermissions: [String]
+  editPermissions: [String]
 }

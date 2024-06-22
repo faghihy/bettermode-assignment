@@ -4,33 +4,27 @@ import { Tweet } from './entities/tweet.entity';
 import { TweetCategory } from './enums/category.enum';
 import { PaginatedTweet } from './types/paginated-tweet.type';
 import { FilterTweet } from './inputs/filter-tweet.input';
+import { UpdateTweetPermissions } from './inputs/update-tweet-permissions.input';
 
 @Resolver()
 export class TweetsResolver {
   constructor(private tweetsService: TweetsService) {}
 
   @Query(() => PaginatedTweet)
-  async getTweets(
+  async paginateTweets(
+    @Args('userId') userId: string,
     @Args('page') page: number,
     @Args('limit') limit: number,
     @Args('filter', { type: () => FilterTweet, nullable: true })
     filter: FilterTweet,
   ): Promise<PaginatedTweet> {
-    return this.tweetsService.getTweets(page, limit, filter);
+    return this.tweetsService.paginateTweets(userId, page, limit, filter);
   }
 
   @Query(() => Boolean)
-  async canUserViewTweet(
-    @Args('userId') userId: number,
-    @Args('tweetId') tweetId: number,
-  ): Promise<boolean> {
-    return this.tweetsService.canViewTweet(userId, tweetId);
-  }
-
-  @Query(() => Boolean)
-  async canUserEditTweet(
-    @Args('userId') userId: number,
-    @Args('tweetId') tweetId: number,
+  async canEditTweet(
+    @Args('userId') userId: string,
+    @Args('tweetId') tweetId: string,
   ): Promise<boolean> {
     return this.tweetsService.canEditTweet(userId, tweetId);
   }
@@ -50,6 +44,18 @@ export class TweetsResolver {
       hashtags,
       category,
       location,
+    );
+  }
+
+  @Mutation(() => Tweet)
+  async updateTweetPermissions(
+    @Args('tweetId') tweetId: number,
+    @Args('updateTweetPermissions')
+    updateTweetPermissions: UpdateTweetPermissions,
+  ): Promise<Tweet> {
+    return this.tweetsService.updateTweetPermissions(
+      tweetId,
+      updateTweetPermissions,
     );
   }
 }
