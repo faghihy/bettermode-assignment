@@ -81,13 +81,35 @@ type Mutation {
 
 ### Trade-offs
 
-SQL vs NoSQL
+#### Flexibility vs. Consistency
 
-TypeORM vs Sequelize
+- Pros: Allows users to create complex group structures, enhancing the flexibility of the permissions system.
+- Cons: Increases the complexity of permission checks, especially with nested groups. Ensuring data consistency across these groups can be challenging.
+- Decision: Used recursive methods with caching (TODO) to manage nested group memberships efficiently. This approach maintains flexibility while addressing performance and consistency concerns.
 
-GraphQL vs REST
+#### Inheritance vs. Explicit Permissions
 
-Scalability VS Consistency
+- Pros: Simplifies permission management for users by automatically applying parent tweet permissions to replies.
+- Cons: Adds complexity to the permission check logic, as it requires evaluating the permission hierarchy.
+- Decision: Implemented lazy evaluation of inherited permissions to defer complex calculations until necessary. This reduces the performance overhead during permission updates.
+
+#### REST vs. GraphQL API
+
+- Pros: Provides flexibility to clients, allowing them to request only the data they need. Supports complex queries and reduces over-fetching of data.
+- Cons: Can introduce complexity in query parsing and execution. May require additional optimizations to handle deeply nested queries.
+- Decision: Chose GraphQL for its flexibility and client-side benefits. Implemented query complexity analysis and depth limits to ensure performance remains manageable.
+
+#### Horizontal Scalability vs. Vertical Scalability
+
+- Pros: Allows the system to scale out by adding more instances, improving resilience and load handling.
+- Cons: Requires careful management of state and consistency across instances. Increases the complexity of the deployment and monitoring setup.
+- Decision: Adopted a microservices architecture to support horizontal scaling. Used stateless services where possible and leveraged distributed caching and database sharding to manage state and consistency.
+
+#### Pagination Strategy
+
+- Pros: More efficient for deep paginations and prevents issues with offset-based pagination, such as missing or duplicate items due to data changes.
+- Cons: Adds complexity in managing cursors and ensuring they are stateless and consistent.
+- Decision: Implemented cursor-based pagination to enhance performance and reliability for large datasets, ensuring a smooth user experience.
 
 ### Performance Considerations
 
