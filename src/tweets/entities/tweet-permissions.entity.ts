@@ -11,8 +11,8 @@ export class TweetPermissions {
   @ManyToOne(() => Tweet, (tweet) => tweet.permissions)
   tweet: Tweet;
 
-  @ManyToOne(() => User, { nullable: true })
-  user: User;
+  @Column({ nullable: true })
+  owner: string;
 
   @ManyToOne(() => Group, { nullable: true })
   group: Group;

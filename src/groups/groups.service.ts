@@ -39,13 +39,17 @@ export class GroupsService {
   ): Promise<Group> {
     const group = this.groupsRepository.create({ name });
 
-    const users = await this.usersRepository.findByIds(userIds);
-    const subGroups = await this.groupsRepository.findByIds(groupIds);
+    const users = await this.usersRepository.find({
+      where: userIds.map((id) => ({ id })),
+    });
+    const subGroups = await this.groupsRepository.find({
+      where: groupIds.map((id) => ({ id })),
+    });
 
     const groupMembers = users.map((user) => {
       const member = new GroupMembers();
       member.group = group;
-      member.user = user;
+      member.user = user.id.toString();
       return member;
     });
 
@@ -69,13 +73,17 @@ export class GroupsService {
       throw new Error('Group not found');
     }
 
-    const users = await this.usersRepository.findByIds(userIds);
-    const subGroups = await this.groupsRepository.findByIds(subGroupIds);
+    const users = await this.usersRepository.find({
+      where: userIds.map((id) => ({ id })),
+    });
+    const subGroups = await this.groupsRepository.find({
+      where: subGroupIds.map((id) => ({ id })),
+    });
 
     const groupMembers = users.map((user) => {
       const member = new GroupMembers();
       member.group = group;
-      member.user = user;
+      member.user = user.id.toString();
       return member;
     });
 
@@ -85,7 +93,7 @@ export class GroupsService {
     return this.groupsRepository.save(group);
   }
 
-  async getAllGroupMembers(groupId: number): Promise<User[]> {
+  async getAllGroupMembers(groupId: number): Promise<string[]> {
     const group = await this.findOne(groupId, ['members', 'subGroups']);
     const members = group.members.map((member) => member.user);
 

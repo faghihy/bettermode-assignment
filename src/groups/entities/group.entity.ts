@@ -16,8 +16,8 @@ export class Group {
   @Column()
   name: string;
 
-  @ManyToOne(() => User, (user) => user.groups)
-  owner: User;
+  @Column({ nullable: true })
+  owner: string;
 
   @OneToMany(() => GroupMembers, (groupMember) => groupMember.group)
   members: GroupMembers[];

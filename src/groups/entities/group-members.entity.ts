@@ -1,6 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
 import { Group } from './group.entity';
-import { User } from '../../users/entities/user.entity';
 
 @Entity('groups_permissions')
 export class GroupMembers {
@@ -10,8 +9,8 @@ export class GroupMembers {
   @ManyToOne(() => Group, (group) => group.members)
   group: Group;
 
-  @ManyToOne(() => User, (user) => user.groupMemberships)
-  user: User;
+  @Column({ nullable: true })
+  user: string;
 
   @ManyToOne(() => GroupMembers, { nullable: true })
   subGroup: GroupMembers;

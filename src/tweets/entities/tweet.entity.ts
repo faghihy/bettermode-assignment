@@ -13,8 +13,8 @@ export class Tweet {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.tweets)
-  author: User;
+  @Column()
+  author: string;
 
   @Column()
   content: string;

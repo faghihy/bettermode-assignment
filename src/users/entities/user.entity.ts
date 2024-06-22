@@ -1,9 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
 import { GroupMembers } from '../../groups/entities/group-members.entity';
 import { Tweet } from '../../tweets/entities/tweet.entity';
 
-@Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;

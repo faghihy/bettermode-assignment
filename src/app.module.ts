@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -20,7 +21,7 @@ import { TweetPermissions } from './tweets/entities/tweet-permissions.entity';
       port: parseInt(process.env.DATABASE_PORT, 10),
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
-      database: 'twperm4', // TODO: process.env.DATABASE_NAME
+      database: '5', // TODO: process.env.DATABASE_NAME
       entities: [User, Group, GroupMembers, Tweet, TweetPermissions],
       synchronize: true,
     }),
