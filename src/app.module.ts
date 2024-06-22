@@ -6,11 +6,11 @@ import { UsersModule } from './users/users.module';
 
 import { Group } from './groups/entities/group.entity';
 import { GroupsModule } from './groups/groups.module';
-import { GroupMember } from './groups/entities/group-members.entity';
+import { GroupMembers } from './groups/entities/group-members.entity';
 
 import { Tweet } from './tweets/entities/tweet.entity';
 import { TweetsModule } from './tweets/tweets.module';
-import { TweetPermission } from './tweets/entities/tweet-permissions.entity';
+import { TweetPermissions } from './tweets/entities/tweet-permissions.entity';
 
 @Module({
   imports: [
@@ -20,8 +20,8 @@ import { TweetPermission } from './tweets/entities/tweet-permissions.entity';
       port: parseInt(process.env.DATABASE_PORT, 10),
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
-      database: 'twperm3', // TODO: process.env.DATABASE_NAME
-      entities: [User, Group, GroupMember, Tweet, TweetPermission],
+      database: 'twperm4', // TODO: process.env.DATABASE_NAME
+      entities: [User, Group, GroupMembers, Tweet, TweetPermissions],
       synchronize: true,
     }),
     UsersModule,

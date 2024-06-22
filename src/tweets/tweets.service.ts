@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tweet } from './entities/tweet.entity';
-import { TweetPermission } from './entities/tweet-permissions.entity';
+import { TweetPermissions } from './entities/tweet-permissions.entity';
 
 @Injectable()
 export class TweetsService {
@@ -21,8 +21,8 @@ export class TweetsService {
   constructor(
     @InjectRepository(Tweet)
     private tweetRepository: Repository<Tweet>,
-    @InjectRepository(TweetPermission)
-    private tweetPermissionRepository: Repository<TweetPermission>,
+    @InjectRepository(TweetPermissions)
+    private tweetPermissionRepository: Repository<TweetPermissions>,
   ) {}
 
   async canViewTweet(userId: number, tweetId: number): Promise<boolean> {

@@ -3,8 +3,8 @@ import { Tweet } from './tweet.entity';
 import { User } from '../../users/entities/user.entity';
 import { Group } from '../../groups/entities/group.entity';
 
-@Entity()
-export class TweetPermission {
+@Entity('tweets_permissions')
+export class TweetPermissions {
   @PrimaryGeneratedColumn()
   id: number;
 

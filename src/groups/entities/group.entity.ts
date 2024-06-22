@@ -6,9 +6,9 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { GroupMember } from './group-members.entity';
+import { GroupMembers } from './group-members.entity';
 
-@Entity()
+@Entity('groups')
 export class Group {
   @PrimaryGeneratedColumn()
   id: number;
@@ -19,8 +19,8 @@ export class Group {
   @ManyToOne(() => User, (user) => user.groups)
   owner: User;
 
-  @OneToMany(() => GroupMember, (groupMember) => groupMember.group)
-  members: GroupMember[];
+  @OneToMany(() => GroupMembers, (groupMember) => groupMember.group)
+  members: GroupMembers[];
 
   @OneToMany(() => Group, (group) => group.parentGroup)
   subGroups: Group[];

@@ -6,9 +6,9 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { TweetPermission } from './tweet-permissions.entity';
+import { TweetPermissions } from './tweet-permissions.entity';
 
-@Entity()
+@Entity('tweets')
 export class Tweet {
   @PrimaryGeneratedColumn()
   id: number;
@@ -31,6 +31,6 @@ export class Tweet {
   @Column({ default: true })
   inheritEditPermission: boolean;
 
-  @OneToMany(() => TweetPermission, (permission) => permission.tweet)
-  permissions: TweetPermission[];
+  @OneToMany(() => TweetPermissions, (permission) => permission.tweet)
+  permissions: TweetPermissions[];
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
-import { GroupMember } from './entities/group-members.entity';
+import { GroupMembers } from './entities/group-members.entity';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -11,8 +11,8 @@ export class GroupsService {
     @InjectRepository(Group)
     private groupsRepository: Repository<Group>,
 
-    @InjectRepository(GroupMember)
-    private groupMembersRepository: Repository<GroupMember>,
+    @InjectRepository(GroupMembers)
+    private groupMembersRepository: Repository<GroupMembers>,
 
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -43,7 +43,7 @@ export class GroupsService {
     const subGroups = await this.groupsRepository.findByIds(groupIds);
 
     const groupMembers = users.map((user) => {
-      const member = new GroupMember();
+      const member = new GroupMembers();
       member.group = group;
       member.user = user;
       return member;
@@ -73,7 +73,7 @@ export class GroupsService {
     const subGroups = await this.groupsRepository.findByIds(subGroupIds);
 
     const groupMembers = users.map((user) => {
-      const member = new GroupMember();
+      const member = new GroupMembers();
       member.group = group;
       member.user = user;
       return member;
