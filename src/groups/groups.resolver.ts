@@ -1,20 +1,10 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { GroupsService } from './groups.service';
 import { Group } from './entities/group.entity';
 
 @Resolver()
 export class GroupsResolver {
   constructor(private groupsService: GroupsService) {}
-
-  @Query(() => [Group])
-  groups() {
-    return this.groupsService.findAll();
-  }
-
-  @Query(() => Group)
-  group(@Args('id') id: number) {
-    return this.groupsService.findOne(id);
-  }
 
   @Mutation(() => Group)
   createGroup(
@@ -23,11 +13,6 @@ export class GroupsResolver {
     @Args('groupIds', { type: () => [String], nullable: true })
     groupIds: number[],
   ) {
-    return this.groupsService.create(name, userIds, groupIds);
-  }
-
-  @Query(() => [Group])
-  groupMembers(@Args('groupId') groupId: number) {
-    return this.groupsService.getAllGroupMembers(groupId);
+    return this.groupsService.createGroup(name, userIds, groupIds);
   }
 }
