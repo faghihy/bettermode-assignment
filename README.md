@@ -10,6 +10,12 @@
 
 This project impliments a permission and group system for X platform. Users can create groups and set permissions on their posts (tweets) to control view/edit abilities. This project using technologies like TS, NestJS, GraphQL, PostgrSQL and MongoDB as a NoSQL alternative for DB.
 
+### Prerequisites
+
+- Node.js (>= 14.x)
+- npm (>= 6.x)
+- Docker (for running the application using Docker Compose)
+
 ## Solution
 
 - Logic
@@ -123,6 +129,12 @@ If you are curious about testing the project, you can run:
 
 ```bash
 $ npm run test
+```
+
+### Running with Docker Compose
+
+```sh
+docker-compose up --build
 ```
 
 ## Author
