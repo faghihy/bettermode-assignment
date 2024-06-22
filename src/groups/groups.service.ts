@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { GroupMembers } from './entities/group-members.entity';
-import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class GroupsService {
@@ -13,9 +12,6 @@ export class GroupsService {
 
     @InjectRepository(GroupMembers)
     private groupMembersRepository: Repository<GroupMembers>,
-
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
   ) {}
 
   findAll(): Promise<Group[]> {
@@ -34,22 +30,19 @@ export class GroupsService {
 
   async create(
     name: string,
-    userIds: number[],
+    userIds: string[],
     groupIds: number[],
   ): Promise<Group> {
     const group = this.groupsRepository.create({ name });
 
-    const users = await this.usersRepository.find({
-      where: userIds.map((id) => ({ id })),
-    });
     const subGroups = await this.groupsRepository.find({
       where: groupIds.map((id) => ({ id })),
     });
 
-    const groupMembers = users.map((user) => {
+    const groupMembers = userIds.map((user) => {
       const member = new GroupMembers();
       member.group = group;
-      member.user = user.id.toString();
+      member.user = user;
       return member;
     });
 
@@ -61,7 +54,7 @@ export class GroupsService {
 
   async addMembers(
     groupId: number,
-    userIds: number[],
+    userIds: string[],
     subGroupIds: number[],
   ): Promise<Group> {
     const group = await this.groupsRepository.findOne({
@@ -73,17 +66,14 @@ export class GroupsService {
       throw new Error('Group not found');
     }
 
-    const users = await this.usersRepository.find({
-      where: userIds.map((id) => ({ id })),
-    });
     const subGroups = await this.groupsRepository.find({
       where: subGroupIds.map((id) => ({ id })),
     });
 
-    const groupMembers = users.map((user) => {
+    const groupMembers = userIds.map((user) => {
       const member = new GroupMembers();
       member.group = group;
-      member.user = user.id.toString();
+      member.user = user;
       return member;
     });
 

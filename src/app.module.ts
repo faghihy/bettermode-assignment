@@ -6,9 +6,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 
-import { User } from './users/entities/user.entity';
-import { UsersModule } from './users/users.module';
-
 import { Group } from './groups/entities/group.entity';
 import { GroupsModule } from './groups/groups.module';
 import { GroupMembers } from './groups/entities/group-members.entity';
@@ -25,15 +22,14 @@ import { TweetPermissions } from './tweets/entities/tweet-permissions.entity';
       port: parseInt(process.env.DATABASE_PORT, 10),
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
-      database: '5', // TODO: process.env.DATABASE_NAME
-      entities: [User, Group, GroupMembers, Tweet, TweetPermissions],
+      database: '6', // TODO: process.env.DATABASE_NAME
+      entities: [Group, GroupMembers, Tweet, TweetPermissions],
       synchronize: true,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
-    UsersModule,
     GroupsModule,
     TweetsModule,
   ],

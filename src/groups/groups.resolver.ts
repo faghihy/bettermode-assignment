@@ -19,7 +19,7 @@ export class GroupsResolver {
   @Mutation(() => Group)
   createGroup(
     @Args('name') name: string,
-    @Args('userIds', { type: () => [String] }) userIds: number[],
+    @Args('userIds', { type: () => [String] }) userIds: string[],
     @Args('groupIds', { type: () => [String], nullable: true })
     groupIds: number[],
   ) {

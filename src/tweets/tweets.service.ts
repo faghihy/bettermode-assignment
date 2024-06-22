@@ -69,9 +69,49 @@ export class TweetsService {
 
   async getTweets(page: number, limit: number): Promise<Tweet[]> {
     const offset = (page - 1) * limit;
-    return this.tweetRepository.find({
-      skip: offset,
-      take: limit,
-    });
+    const query = `
+    WITH RECURSIVE UserGroups AS (
+        -- Base case: Direct group memberships
+        SELECT gm.group_id, gm.user_id
+        FROM GroupMemberships gm
+        WHERE gm.user_id = ?
+
+        UNION
+
+        -- Recursive case: Memberships through sub-groups
+        SELECT gm.group_id, ug.user_id
+        FROM GroupMemberships gm
+        JOIN UserGroups ug ON gm.sub_group_id = ug.group_id
+    )
+    , ViewableTweets AS (
+        -- Tweets with direct view permissions for the user
+        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
+        FROM Tweets t
+        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
+        WHERE tp.user_id = ? AND tp.can_view = TRUE
+
+        UNION
+
+        -- Tweets with view permissions through user's groups
+        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
+        FROM Tweets t
+        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
+        JOIN UserGroups ug ON tp.group_id = ug.group_id
+        WHERE tp.can_view = TRUE
+
+        UNION
+
+        -- Recursive case: Inherit view permissions from parent tweets
+        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
+        FROM Tweets t
+        JOIN ViewableTweets vt ON t.parent_tweet_id = vt.tweet_id
+        WHERE vt.auto_inherit_view = TRUE
+    )
+    SELECT DISTINCT tweet_id
+    FROM ViewableTweets
+    LIMIT ${limit} OFFSET ${offset};
+    `;
+
+    return this.tweetRepository.query(query);
   }
 }

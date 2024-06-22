@@ -8,18 +8,10 @@ type Tweet {
   content: String!
 }
 
-type User {
-  id: ID!
-  name: String!
-  username: String!
-}
-
 type Query {
-  users(id: String!): [User!]!
   tweets: [Tweet!]!
 }
 
 type Mutation {
-  createUser(username: String!): User!
   createTweet(authorId: String!, content: String!, hashtags: [String!], category: String, location: String): Tweet!
 }

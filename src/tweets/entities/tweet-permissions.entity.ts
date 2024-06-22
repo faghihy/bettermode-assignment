@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Tweet } from './tweet.entity';
-import { User } from '../../users/entities/user.entity';
 import { Group } from '../../groups/entities/group.entity';
 
 @Entity('tweets_permissions')

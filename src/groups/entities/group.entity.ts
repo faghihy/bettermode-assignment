@@ -5,7 +5,6 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { GroupMembers } from './group-members.entity';
 
 @Entity('groups')
