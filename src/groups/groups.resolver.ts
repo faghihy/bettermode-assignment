@@ -1,18 +1,18 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation } from '@nestjs/graphql';
 import { GroupsService } from './groups.service';
 import { Group } from './entities/group.entity';
+import { CreateGroup } from './types/create-group.type';
 
 @Resolver()
 export class GroupsResolver {
   constructor(private groupsService: GroupsService) {}
 
   @Mutation(() => Group)
-  createGroup(
-    @Args('name') name: string,
-    @Args('userIds', { type: () => [String] }) userIds: string[],
-    @Args('groupIds', { type: () => [String], nullable: true })
-    groupIds: number[],
-  ) {
-    return this.groupsService.createGroup(name, userIds, groupIds);
+  async createGroup(args: CreateGroup): Promise<Group> {
+    return this.groupsService.createGroup(
+      args.name,
+      args.userIds,
+      args.groupIds,
+    );
   }
 }

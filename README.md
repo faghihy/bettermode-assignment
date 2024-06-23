@@ -8,7 +8,7 @@
 
 ## Senior Back-End Engineer Project Assignment
 
-This project impliments a permission and group system for X platform. Users can create groups and set permissions on their posts (tweets) to control view/edit abilities. This project using technologies like TS, NestJS, GraphQL, PostgrSQL and MongoDB as a NoSQL alternative for DB.
+This project impliments a permission and group system for X platform. Users can create groups and set permissions on their posts (tweets) to control view/edit abilities. This project using technologies like TS, NestJS, GraphQL and PostgrSQL.
 
 ### Prerequisites
 

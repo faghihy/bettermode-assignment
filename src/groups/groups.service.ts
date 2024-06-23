@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { GroupMembers } from './entities/group-members.entity';
 
@@ -17,12 +17,16 @@ export class GroupsService {
   async createGroup(
     name: string,
     userIds: string[],
-    groupIds: number[],
+    groupIds: string[],
   ): Promise<Group> {
     const group = this.groupsRepository.create({ name });
 
+    const groupIdsAsNumbers = groupIds.map((id) => parseInt(id, 10));
+
     const subGroups = await this.groupsRepository.find({
-      where: groupIds.map((id) => ({ id })),
+      where: {
+        id: In(groupIdsAsNumbers),
+      },
     });
 
     const groupMembers = userIds.map((user) => {
