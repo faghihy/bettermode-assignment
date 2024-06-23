@@ -1,19 +1,27 @@
 version: '3.8'
+
 services:
-  app:
-    build: .
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: faghihy
+      POSTGRES_PASSWORD: 2020
+      POSTGRES_DB: twperm
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs
     ports:
       - '2020:2020'
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm run start:dev
+    depends_on:
+      - postgres
 
-  test:
-    build: .
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm test
+volumes:
+  postgres_data:
