@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { GroupMembers } from './group-members.entity';
 
@@ -21,14 +15,8 @@ export class Group {
 
   @Field()
   @Column({ nullable: true })
-  owner: string;
+  ownerId: string;
 
   @OneToMany(() => GroupMembers, (groupMember) => groupMember.group)
   members: GroupMembers[];
-
-  @OneToMany(() => Group, (group) => group.parentGroup)
-  subGroups: Group[];
-
-  @ManyToOne(() => Group, (group) => group.subGroups)
-  parentGroup: Group;
 }

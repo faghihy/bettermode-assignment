@@ -10,7 +10,7 @@ export class GroupMembers {
   group: Group;
 
   @Column({ nullable: true })
-  user: string;
+  userId: string;
 
   @ManyToOne(() => GroupMembers, { nullable: true })
   subGroup: GroupMembers;

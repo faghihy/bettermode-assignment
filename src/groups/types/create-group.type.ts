@@ -1,12 +1,12 @@
-import { InputType, Field, ID } from '@nestjs/graphql';
+import { InputType, Field } from '@nestjs/graphql';
 
 @InputType()
 export class CreateGroup {
-  @Field(() => ID)
-  id: string;
-
   @Field()
   name: string;
+
+  @Field()
+  ownerId: string;
 
   @Field()
   userIds: string[];

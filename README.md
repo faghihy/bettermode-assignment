@@ -248,7 +248,7 @@ And run this:
 $ npm run migrate
 ```
 
-After all bu running this, you can see the result in [localhost:2222/graphql](http://localhost:2020/graphql):
+After all bu running this, you can see the result in [localhost:2020/graphql](http://localhost:2020/graphql):
 
 ```bash
 $ npm run start
