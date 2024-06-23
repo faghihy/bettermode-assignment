@@ -1,20 +1,22 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { TweetsService } from './tweets.service';
 import { Tweet } from './entities/tweet.entity';
-import { TweetCategory } from './enums/category.enum';
+import { CreateTweet } from './types/create-tweet.input';
+import { FilterTweet } from './types/filter-tweet.input';
 import { PaginatedTweet } from './types/paginated-tweet.type';
-import { FilterTweet } from './inputs/filter-tweet.input';
-import { UpdateTweetPermissions } from './inputs/update-tweet-permissions.input';
+import { UpdateTweetPermissions } from './types/update-tweet-permissions.input';
 
-@Resolver()
+@Resolver(() => Tweet)
 export class TweetsResolver {
-  constructor(private tweetsService: TweetsService) {}
+  constructor(private readonly tweetsService: TweetsService) {}
 
   @Query(() => PaginatedTweet)
   async paginateTweets(
     @Args('userId') userId: string,
-    @Args('page') page: number,
-    @Args('limit') limit: number,
+    @Args('limit', { type: () => Int, nullable: true })
+    limit: number = 10,
+    @Args('page', { type: () => Int, nullable: true })
+    page: number = 1,
     @Args('filter', { type: () => FilterTweet, nullable: true })
     filter: FilterTweet,
   ): Promise<PaginatedTweet> {
@@ -30,26 +32,13 @@ export class TweetsResolver {
   }
 
   @Mutation(() => Tweet)
-  createTweet(
-    @Args('authorId') authorId: string,
-    @Args('content') content: string,
-    @Args('hashtags', { type: () => [String], nullable: true })
-    hashtags: string[],
-    @Args('category', { nullable: true }) category: TweetCategory,
-    @Args('location', { nullable: true }) location: string,
-  ) {
-    return this.tweetsService.createTweet(
-      authorId,
-      content,
-      hashtags,
-      category,
-      location,
-    );
+  async createTweet(args: CreateTweet) {
+    return this.tweetsService.createTweet(args);
   }
 
   @Mutation(() => Tweet)
   async updateTweetPermissions(
-    @Args('tweetId') tweetId: number,
+    @Args('tweetId') tweetId: string,
     @Args('updateTweetPermissions')
     updateTweetPermissions: UpdateTweetPermissions,
   ): Promise<boolean> {

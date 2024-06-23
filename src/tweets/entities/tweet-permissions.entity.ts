@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Tweet } from './tweet.entity';
 import { Group } from '../../groups/entities/group.entity';
 
-@Entity('tweets_permissions')
+@Entity('tweet_permissions')
 export class TweetPermissions {
   @PrimaryGeneratedColumn('uuid')
   id: string;

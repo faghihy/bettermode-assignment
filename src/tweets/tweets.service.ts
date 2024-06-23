@@ -1,232 +1,192 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Tweet } from './entities/tweet.entity';
-import { TweetCategory } from './enums/category.enum';
-import { TweetPermissions } from './entities/tweet-permissions.entity';
+import { CreateTweet } from './types/create-tweet.input';
+import { FilterTweet } from './types/filter-tweet.input';
 import { PaginatedTweet } from './types/paginated-tweet.type';
-import { FilterTweet } from './inputs/filter-tweet.input';
-import { UpdateTweetPermissions } from './inputs/update-tweet-permissions.input';
+import { UpdateTweetPermissions } from './types/update-tweet-permissions.input';
+import { TweetPermissions } from './entities/tweet-permissions.entity';
 
 @Injectable()
 export class TweetsService {
   constructor(
     @InjectRepository(Tweet)
-    private tweetRepository: Repository<Tweet>,
+    private tweetsRepository: Repository<Tweet>,
     @InjectRepository(TweetPermissions)
-    private tweetPermissionRepository: Repository<TweetPermissions>,
+    private tweetPermissionsRepository: Repository<TweetPermissions>,
+    private dataSource: DataSource,
   ) {}
 
-  async canViewTweet(userId: number, tweetId: number): Promise<boolean> {
+  async canEditTweet(tweetId: string, userId: string): Promise<boolean> {
     const query = `
-    WITH RECURSIVE UserGroups AS (
-        SELECT gm.group_id, gm.user_id
-        FROM GroupMemberships gm
-        WHERE gm.user_id = $1
-
-        UNION
-
-        SELECT gm.group_id, ug.user_id
-        FROM GroupMemberships gm
-        JOIN UserGroups ug ON gm.sub_group_id = ug.group_id
-    )
-    , ViewableTweets AS (
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
-        FROM Tweets t
-        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
-        WHERE tp.user_id = $1 AND tp.can_view = TRUE
-
-        UNION
-
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
-        FROM Tweets t
-        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
-        JOIN UserGroups ug ON tp.group_id = ug.group_id
-        WHERE tp.can_view = TRUE
-
-        UNION
-
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
-        FROM Tweets t
-        JOIN ViewableTweets vt ON t.parent_tweet_id = vt.tweet_id
-        WHERE vt.auto_inherit_view = TRUE
-    )
-    SELECT DISTINCT t.tweet_id
-    FROM Tweets t
-    JOIN ViewableTweets vt ON t.tweet_id = vt.tweet_id
-    WHERE t.tweet_id = $2
+      WITH RECURSIVE tweet_hierarchy AS (
+        SELECT t.id, t.parentTweetId, t.inheritEditPermission
+        FROM tweets t
+        WHERE t.id = $1
+        UNION ALL
+        SELECT t.id, t.parentTweetId, t.inheritEditPermission
+        FROM tweets t
+        INNER JOIN tweet_hierarchy th ON t.id = th.parentTweetId
+        WHERE th.inheritEditPermission = TRUE
+      ),
+      user_permissions AS (
+        SELECT tp.*
+        FROM tweet_permissions tp
+        WHERE tp.userId = $2
+      )
+      SELECT 
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 
+            FROM tweet_hierarchy th
+            JOIN user_permissions up ON up.tweetId = th.id
+            WHERE up.canEdit = TRUE
+          ) THEN TRUE
+          ELSE FALSE
+        END AS canEdit
     `;
 
-    const result = await this.tweetRepository.query(query, [userId, tweetId]);
-    return result.length > 0;
-  }
-
-  async canEditTweet(userId: string, tweetId: string): Promise<boolean> {
-    const query = `
-    WITH RECURSIVE UserGroups AS (
-        SELECT gm.group_id, gm.user_id
-        FROM GroupMemberships gm
-        WHERE gm.user_id = $1
-
-        UNION
-
-        SELECT gm.group_id, ug.user_id
-        FROM GroupMemberships gm
-        JOIN UserGroups ug ON gm.sub_group_id = ug.group_id
-    )
-    , EditableTweets AS (
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_edit
-        FROM Tweets t
-        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
-        WHERE tp.user_id = $1 AND tp.can_edit = TRUE
-
-        UNION
-
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_edit
-        FROM Tweets t
-        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
-        JOIN UserGroups ug ON tp.group_id = ug.group_id
-        WHERE tp.can_edit = TRUE
-
-        UNION
-
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_edit
-        FROM Tweets t
-        JOIN EditableTweets vt ON t.parent_tweet_id = vt.tweet_id
-        WHERE vt.auto_inherit_edit = TRUE
-    )
-    SELECT DISTINCT t.tweet_id
-    FROM Tweets t
-    JOIN EditableTweets vt ON t.tweet_id = vt.tweet_id
-    WHERE t.tweet_id = $2
-    `;
-
-    const result = await this.tweetRepository.query(query, [userId, tweetId]);
-    return result.length > 0;
+    const result = await this.dataSource.query(query, [tweetId, userId]);
+    return result[0].canEdit;
   }
 
   async paginateTweets(
     userId: string,
-    page: number,
-    limit: number,
-    filter: FilterTweet,
+    page: number = 1,
+    limit: number = 10,
+    filter?: FilterTweet,
   ): Promise<PaginatedTweet> {
-    let query = `
-    WITH RECURSIVE UserGroups AS (
-        -- Base case: Direct group memberships
-        SELECT gm.group_id, gm.user_id
-        FROM GroupMemberships gm
-        WHERE gm.user_id = $1
+    const offset = (page - 1) * limit;
 
-        UNION
+    const query = `
+      WITH RECURSIVE groups AS (
+          SELECT gm.groupId, gm.userId
+          FROM group_members gm
+          WHERE gm.userId = $1
 
-        -- Recursive case: Memberships through sub-groups
-        SELECT gm.group_id, ug.user_id
-        FROM GroupMemberships gm
-        JOIN UserGroups ug ON gm.sub_group_id = ug.group_id
-    )
-    , ViewableTweets AS (
-        -- Tweets with direct view permissions for the user
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
-        FROM Tweets t
-        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
-        WHERE tp.user_id = $2 AND tp.can_view = TRUE
+          UNION
 
-        UNION
+          SELECT gm.groupId, ug.userId
+          FROM group_members gm
+          JOIN groups ug ON gm.subGroupId = ug.groupId
+      )
+      , ViewableTweets AS (
+          SELECT t.id AS tweetId, t.parentTweetId, t.inheritViewPermission
+          FROM tweets t
+          JOIN tweet_permissions tp ON t.id = tp.tweetId
+          WHERE tp.userId = $2 AND tp.canView = TRUE
 
-        -- Tweets with view permissions through user's groups
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
-        FROM Tweets t
-        JOIN TweetPermissions tp ON t.tweet_id = tp.tweet_id
-        JOIN UserGroups ug ON tp.group_id = ug.group_id
-        WHERE tp.can_view = TRUE
+          UNION
 
-        UNION
+          SELECT t.id AS tweetId, t.parentTweetId, t.inheritViewPermission
+          FROM tweets t
+          JOIN tweet_permissions tp ON t.id = tp.tweetId
+          JOIN groups ug ON tp.groupId = ug.groupId
+          WHERE tp.canView = TRUE
 
-        -- Recursive case: Inherit view permissions from parent tweets
-        SELECT t.tweet_id, t.parent_tweet_id, t.auto_inherit_view
-        FROM Tweets t
-        JOIN ViewableTweets vt ON t.parent_tweet_id = vt.tweet_id
-        WHERE vt.auto_inherit_view = TRUE
-    )
-    SELECT DISTINCT t.*
-    FROM Tweets t
-    JOIN ViewableTweets vt ON t.tweet_id = vt.tweet_id
+          UNION
+
+          SELECT t.id AS tweetId, t.parentTweetId, t.inheritViewPermission
+          FROM tweets t
+          JOIN ViewableTweets vt ON t.parentTweetId = vt.tweetId
+          WHERE vt.inheritViewPermission = TRUE
+      )
+      SELECT DISTINCT t.*
+      FROM tweets t
+      JOIN ViewableTweets vt ON t.id = vt.tweetId
+      ${this.buildFilterWhereClause(filter)}
+      LIMIT $3 OFFSET $4
     `;
 
-    const params = []; // TODO
-
-    if (filter) {
-      if (filter.authorId) {
-        query += ` AND t.authorId = $${params.length + 1}`;
-        params.push(filter.authorId);
-      }
-      if (filter.hashtag) {
-        query += ` AND $${params.length + 1} = ANY (t.hashtags)`;
-        params.push(filter.hashtag);
-      }
-      if (filter.parentTweetId) {
-        query += ` AND t.parentTweetId = $${params.length + 1}`;
-        params.push(filter.parentTweetId);
-      }
-      if (filter.category) {
-        query += ` AND t.category = $${params.length + 1}`;
-        params.push(filter.category);
-      }
-      if (filter.location) {
-        query += ` AND t.location = $${params.length + 1}`;
-        params.push(filter.location);
-      }
-    }
-
-    query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(limit, (page - 1) * limit);
-
-    const tweets = await this.tweetRepository.query(query, params);
-    const total = tweets.length;
-
-    const hasNextPage = page * limit < total;
+    const params = [userId, userId, limit, offset];
+    const [tweets, count] = await Promise.all([
+      this.dataSource.query(query, params),
+      this.dataSource.query(
+        `SELECT COUNT(DISTINCT t.id) FROM tweets t JOIN ViewableTweets vt ON t.id = vt.tweetId ${this.buildFilterWhereClause(filter)}`,
+        [userId, userId],
+      ),
+    ]);
 
     return {
       nodes: tweets,
-      hasNextPage,
+      hasNextPage: count[0].count > page * limit,
     };
   }
 
-  async createTweet(
-    authorId: string,
-    content: string,
-    hashtags: string[],
-    category: TweetCategory,
-    location: string,
-  ): Promise<Tweet> {
-    const newTweet = this.tweetRepository.create({
-      authorId,
-      content,
-      hashtags,
-      category,
-      location,
-    });
-    return this.tweetRepository.save(newTweet);
+  private buildFilterWhereClause(filter?: FilterTweet): string {
+    let whereClause = '';
+    if (filter) {
+      const conditions = [];
+      if (filter.authorId) {
+        conditions.push(`t.authorId = '${filter.authorId}'`);
+      }
+      if (filter.hashtag) {
+        conditions.push(`'${filter.hashtag}' = ANY(t.hashtags)`);
+      }
+      if (filter.parentTweetId) {
+        conditions.push(`t.parentTweetId = '${filter.parentTweetId}'`);
+      }
+      if (filter.category) {
+        conditions.push(`t.category = '${filter.category}'`);
+      }
+      if (filter.location) {
+        conditions.push(`t.location = '${filter.location}'`);
+      }
+      if (conditions.length > 0) {
+        whereClause = `WHERE ${conditions.join(' AND ')}`;
+      }
+    }
+    return whereClause;
+  }
+
+  async createTweet(args: CreateTweet): Promise<Tweet> {
+    const newTweet = this.tweetsRepository.create(args);
+    return this.tweetsRepository.save(newTweet);
   }
 
   async updateTweetPermissions(
-    tweetId: number,
-    updateTweetPermissions: UpdateTweetPermissions,
+    tweetId: string,
+    updateTweetPermissionsInput: UpdateTweetPermissions,
   ): Promise<boolean> {
-    const tweet = await this.tweetRepository.findOne({
+    const tweet = await this.tweetsRepository.findOne({
       where: { id: tweetId },
+      relations: ['permissions'],
     });
+
     if (!tweet) {
       throw new Error('Tweet not found');
     }
 
-    tweet.inheritViewPermission = updateTweetPermissions.inheritViewPermissions;
-    tweet.inheritEditPermission = updateTweetPermissions.inheritEditPermissions;
-    tweet.viewPermissions = updateTweetPermissions.viewPermissions;
-    tweet.editPermissions = updateTweetPermissions.editPermissions;
+    tweet.inheritViewPermission =
+      updateTweetPermissionsInput.inheritViewPermissions;
+    tweet.inheritEditPermission =
+      updateTweetPermissionsInput.inheritEditPermissions;
 
-    if (this.tweetRepository.save(tweet)) return true;
+    await this.tweetPermissionsRepository.delete({ tweet });
+
+    const viewPermissions =
+      updateTweetPermissionsInput.viewPermissions.userIds.map((userId) => ({
+        tweet,
+        userId,
+        canView: true,
+        canEdit: false,
+      }));
+
+    const editPermissions =
+      updateTweetPermissionsInput.editPermissions.userIds.map((userId) => ({
+        tweet,
+        userId,
+        canView: true,
+        canEdit: true,
+      }));
+
+    await this.tweetPermissionsRepository.save([
+      ...viewPermissions,
+      ...editPermissions,
+    ]);
+
+    if (this.tweetsRepository.save(tweet)) return true;
     else return false;
   }
 }
