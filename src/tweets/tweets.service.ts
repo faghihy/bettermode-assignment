@@ -213,7 +213,7 @@ export class TweetsService {
   async updateTweetPermissions(
     tweetId: number,
     updateTweetPermissions: UpdateTweetPermissions,
-  ): Promise<Tweet> {
+  ): Promise<boolean> {
     const tweet = await this.tweetRepository.findOne({
       where: { id: tweetId },
     });
@@ -226,6 +226,7 @@ export class TweetsService {
     tweet.viewPermissions = updateTweetPermissions.viewPermissions;
     tweet.editPermissions = updateTweetPermissions.editPermissions;
 
-    return this.tweetRepository.save(tweet);
+    if (this.tweetRepository.save(tweet)) return true;
+    else return false;
   }
 }

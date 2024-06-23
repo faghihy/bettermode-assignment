@@ -52,7 +52,7 @@ export class TweetsResolver {
     @Args('tweetId') tweetId: number,
     @Args('updateTweetPermissions')
     updateTweetPermissions: UpdateTweetPermissions,
-  ): Promise<Tweet> {
+  ): Promise<boolean> {
     return this.tweetsService.updateTweetPermissions(
       tweetId,
       updateTweetPermissions,
