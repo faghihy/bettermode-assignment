@@ -2,10 +2,18 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type GroupMembers {
+  id: ID!
+  group: Group!
+  userId: String
+  subGroup: GroupMembers
+}
+
 type Group {
   id: ID!
   name: String!
-  ownerId: String!
+  ownerId: String
+  members: [GroupMembers!]
 }
 
 type Tweet {
@@ -33,9 +41,16 @@ input FilterTweet {
 }
 
 type Mutation {
-  createGroup: Group!
+  createGroup(input: CreateGroup!): Group!
   createTweet: Tweet!
   updateTweetPermissions(tweetId: String!, updateTweetPermissions: UpdateTweetPermissions!): Tweet!
+}
+
+input CreateGroup {
+  name: String!
+  ownerId: String!
+  userIds: [String!]!
+  groupIds: [String!]!
 }
 
 input UpdateTweetPermissions {

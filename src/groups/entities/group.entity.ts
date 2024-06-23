@@ -13,10 +13,11 @@ export class Group {
   @Column()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   ownerId: string;
 
+  @Field(() => [GroupMembers], { nullable: true })
   @OneToMany(() => GroupMembers, (groupMember) => groupMember.group)
   members: GroupMembers[];
 }

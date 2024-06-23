@@ -17,7 +17,7 @@ export class GroupsService {
     private dataSource: DataSource,
   ) {}
 
-  async createGroup(args: CreateGroup): Promise<Group> {
+  async createGroup(createGroupInput: CreateGroup): Promise<Group> {
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -25,14 +25,14 @@ export class GroupsService {
 
     try {
       const group = this.groupsRepository.create({
-        name: args.name,
-        ownerId: args.ownerId,
+        name: createGroupInput.name,
+        ownerId: createGroupInput.ownerId,
       });
       await queryRunner.manager.save(group);
 
       const groupMembers: GroupMembers[] = [];
 
-      for (const userId of args.userIds) {
+      for (const userId of createGroupInput.userIds) {
         const member = this.groupMembersRepository.create({
           group: group,
           userId: userId,
@@ -40,7 +40,7 @@ export class GroupsService {
         groupMembers.push(member);
       }
 
-      for (const groupId of args.groupIds) {
+      for (const groupId of createGroupInput.groupIds) {
         const subGroup = await this.groupsRepository.findOneBy({ id: groupId });
         if (subGroup) {
           const member = this.groupMembersRepository.create({
