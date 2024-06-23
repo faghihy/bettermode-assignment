@@ -1,10 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
 import { Group } from './group.entity';
 
-@Entity('groups_permissions')
+@Entity('group_members')
 export class GroupMembers {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ManyToOne(() => Group, (group) => group.members)
   group: Group;

@@ -6,8 +6,8 @@ import { GroupMembers } from './group-members.entity';
 @Entity('groups')
 export class Group {
   @Field(() => ID)
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Field()
   @Column()
