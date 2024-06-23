@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { GroupMembers } from './entities/group-members.entity';
+import { CreateGroup } from './types/create-group.type';
 
 @Injectable()
 export class GroupsService {
@@ -12,64 +13,54 @@ export class GroupsService {
 
     @InjectRepository(GroupMembers)
     private groupMembersRepository: Repository<GroupMembers>,
+
+    private dataSource: DataSource,
   ) {}
 
-  async createGroup(
-    name: string,
-    userIds: string[],
-    groupIds: string[],
-  ): Promise<Group> {
-    const group = this.groupsRepository.create({ name });
+  async createGroup(args: CreateGroup): Promise<Group> {
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    const groupIdsAsNumbers = groupIds.map((id) => parseInt(id, 10));
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const subGroups = await this.groupsRepository.find({
-      where: {
-        id: In(groupIdsAsNumbers),
-      },
-    });
+    try {
+      const group = this.groupsRepository.create({
+        name: args.name,
+        ownerId: args.ownerId,
+      });
+      await queryRunner.manager.save(group);
 
-    const groupMembers = userIds.map((user) => {
-      const member = new GroupMembers();
-      member.group = group;
-      member.user = user;
-      return member;
-    });
+      const groupMembers: GroupMembers[] = [];
 
-    await this.groupMembersRepository.save(groupMembers);
+      for (const userId of args.userIds) {
+        const member = this.groupMembersRepository.create({
+          group: group,
+          userId: userId,
+        });
+        groupMembers.push(member);
+      }
 
-    group.subGroups = subGroups;
-    return this.groupsRepository.save(group);
-  }
+      for (const groupId of args.groupIds) {
+        const subGroup = await this.groupsRepository.findOneBy({ id: groupId });
+        if (subGroup) {
+          const member = this.groupMembersRepository.create({
+            group: group,
+            subGroup: subGroup,
+          });
+          groupMembers.push(member);
+        }
+      }
 
-  async addMembers(
-    groupId: number,
-    userIds: string[],
-    subGroupIds: number[],
-  ): Promise<Group> {
-    const group = await this.groupsRepository.findOne({
-      where: { id: groupId },
-      relations: ['members', 'subGroups'],
-    });
+      await queryRunner.manager.save(groupMembers);
 
-    if (!group) {
-      throw new Error('Group not found');
+      await queryRunner.commitTransaction();
+
+      return group;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    const subGroups = await this.groupsRepository.find({
-      where: subGroupIds.map((id) => ({ id })),
-    });
-
-    const groupMembers = userIds.map((user) => {
-      const member = new GroupMembers();
-      member.group = group;
-      member.user = user;
-      return member;
-    });
-
-    await this.groupMembersRepository.save(groupMembers);
-
-    group.subGroups = subGroups;
-    return this.groupsRepository.save(group);
   }
 }

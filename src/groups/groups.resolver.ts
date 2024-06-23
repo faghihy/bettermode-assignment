@@ -9,10 +9,6 @@ export class GroupsResolver {
 
   @Mutation(() => Group)
   async createGroup(args: CreateGroup): Promise<Group> {
-    return this.groupsService.createGroup(
-      args.name,
-      args.userIds,
-      args.groupIds,
-    );
+    return this.groupsService.createGroup(args);
   }
 }
