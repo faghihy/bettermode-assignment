@@ -8,9 +8,18 @@ export class UpdateTweetPermissions {
   @Field()
   inheritEditPermissions: boolean;
 
-  @Field(() => [String], { nullable: 'itemsAndList' })
-  viewPermissions: string[];
+  @Field()
+  viewPermissions: PermissionList;
 
-  @Field(() => [String], { nullable: 'itemsAndList' })
-  editPermissions: string[];
+  @Field()
+  editPermissions: PermissionList;
+}
+
+@InputType()
+class PermissionList {
+  @Field()
+  userIds: string[];
+
+  @Field()
+  groupIds: string[];
 }

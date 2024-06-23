@@ -1,13 +1,16 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { TweetCategory } from '../enums/category.enum';
+import { TweetCategory } from '../types/category.enum';
 
 @InputType()
-export class FilterTweet {
-  @Field({ nullable: true })
-  authorId?: string;
+export class Tweet {
+  @Field()
+  authorId: string;
 
-  @Field({ nullable: true })
-  hashtag?: string;
+  @Field()
+  content: string;
+
+  @Field()
+  hashtags: string[];
 
   @Field({ nullable: true })
   parentTweetId?: string;

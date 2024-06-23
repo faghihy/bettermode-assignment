@@ -4,17 +4,17 @@ import { Group } from '../../groups/entities/group.entity';
 
 @Entity('tweets_permissions')
 export class TweetPermissions {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @ManyToOne(() => Tweet, (tweet) => tweet.viewPermissions) // TODO
+  @ManyToOne(() => Tweet, (tweet) => tweet.permissions)
   tweet: Tweet;
 
-  @Column({ nullable: true })
-  owner: string;
-
   @ManyToOne(() => Group, { nullable: true })
-  group: Group;
+  group?: Group;
+
+  @Column({ nullable: true })
+  userId?: string;
 
   @Column({ default: false })
   canEdit: boolean;

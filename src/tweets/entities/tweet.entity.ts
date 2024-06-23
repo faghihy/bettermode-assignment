@@ -6,14 +6,15 @@ import {
   OneToMany,
 } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { TweetCategory } from '../enums/category.enum';
+import { TweetCategory } from '../types/category.enum';
+import { TweetPermissions } from './tweet-permissions.entity';
 
 @ObjectType()
 @Entity('tweets')
 export class Tweet {
   @Field(() => ID)
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Field()
   @Column()
@@ -23,20 +24,21 @@ export class Tweet {
   @Column()
   content: string;
 
-  @Column('simple-array', { nullable: true })
+  @Column('simple-array')
   hashtags: string[];
 
   @Column({
     type: 'enum',
     enum: TweetCategory,
+    nullable: true,
   })
-  category: TweetCategory;
+  category?: TweetCategory;
 
   @Column({ nullable: true })
-  location: string;
+  location?: string;
 
   @ManyToOne(() => Tweet, (tweet) => tweet.replies, { nullable: true })
-  parent: Tweet;
+  parent?: Tweet;
 
   @OneToMany(() => Tweet, (tweet) => tweet.parent)
   replies: Tweet[];
@@ -47,9 +49,6 @@ export class Tweet {
   @Column({ default: true })
   inheritEditPermission: boolean;
 
-  @Column('simple-array', { nullable: true })
-  viewPermissions: string[];
-
-  @Column('simple-array', { nullable: true })
-  editPermissions: string[];
+  @OneToMany(() => TweetPermissions, (tweetPermission) => tweetPermission.tweet)
+  permissions: TweetPermissions[];
 }
