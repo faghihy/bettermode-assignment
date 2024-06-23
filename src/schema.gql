@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Group {
+  id: ID!
+  name: String!
+  ownerId: String!
+}
+
 type Tweet {
   id: ID!
   authorId: String!
@@ -14,7 +20,7 @@ type PaginatedTweet {
 }
 
 type Query {
-  paginateTweets(userId: String!, page: Float!, limit: Float!, filter: FilterTweet): PaginatedTweet!
+  paginateTweets(userId: String!, limit: Int, page: Int, filter: FilterTweet): PaginatedTweet!
   canEditTweet(userId: String!, tweetId: String!): Boolean!
 }
 
@@ -27,13 +33,19 @@ input FilterTweet {
 }
 
 type Mutation {
-  createTweet(authorId: String!, content: String!, hashtags: [String!], category: Float, location: String): Tweet!
-  updateTweetPermissions(tweetId: Float!, updateTweetPermissions: UpdateTweetPermissions!): Tweet!
+  createGroup: Group!
+  createTweet: Tweet!
+  updateTweetPermissions(tweetId: String!, updateTweetPermissions: UpdateTweetPermissions!): Tweet!
 }
 
 input UpdateTweetPermissions {
   inheritViewPermissions: Boolean!
   inheritEditPermissions: Boolean!
-  viewPermissions: [String]
-  editPermissions: [String]
+  viewPermissions: PermissionList!
+  editPermissions: PermissionList!
+}
+
+input PermissionList {
+  userIds: [String!]!
+  groupIds: [String!]!
 }

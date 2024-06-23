@@ -8,9 +8,9 @@ export class CreateGroup {
   @Field()
   ownerId: string;
 
-  @Field()
+  @Field(() => [String])
   userIds: string[];
 
-  @Field()
+  @Field(() => [String])
   groupIds: string[];
 }
