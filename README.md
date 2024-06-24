@@ -51,7 +51,7 @@ This project impliments a permission and group system for X platform. Users can 
 - authorId: String
 - content: String
 - hashtags: String[]
-- parent_tweet_id: UUID
+- parentTweetId: UUID
 - category: Enum (Sport, Finance, Tech, News)
 - location: String
 - parent: Tweet
@@ -90,10 +90,24 @@ Creating a group:
 
 ```graphql
 mutation {
-  createGroup(input: { userIds: ["user1", "user2"], groupIds: ["group1"] }) {
+  createGroup(
+    input: {
+      name: "Investors"
+      ownerId: "1b8285d6-bed8-4fb2-bd5c-33de911600cd"
+      userIds: []
+      groupIds: []
+    }
+  ) {
     id
-    userIds
-    groupIds
+    name
+    ownerId
+    members {
+      id
+      userId
+      subGroup {
+        id
+      }
+    }
   }
 }
 ```
@@ -104,16 +118,15 @@ Creating a Tweet:
 mutation {
   createTweet(
     input: {
-      authorId: "author1"
-      content: "This is a new tweet"
-      hashtags: ["#example"]
+      authorId: "1b8285d6-bed8-4fb2-bd5c-33de911600cd"
+      content: "This is a new tweet from an Investor!"
+      hashtags: ["Invest"]
       parentTweetId: null
-      category: Tech
-      location: "San Francisco"
+      category: "Tech"
+      location: "Canada"
     }
   ) {
     id
-    createdAt
     authorId
     content
   }
@@ -126,10 +139,11 @@ Updating Tweet Permissions:
 mutation {
   updateTweetPermissions(
     input: {
-      inheritViewPermissions: false
-      inheritEditPermissions: true
-      viewPermissions: ["user1", "group1"]
-      editPermissions: []
+      tweetId: "5f45e5a0-cd27-4a94-aa24-e5a64a6db7ce"
+      inheritViewPermissions: true
+      inheritEditPermissions: false
+      viewPermissions: { userIds: [], groupIds: [] }
+      editPermissions: { userIds: [], groupIds: [] }
     }
   )
 }
@@ -139,7 +153,11 @@ Paginating Tweets:
 
 ```graphql
 query {
-  paginateTweets(userId: "user1", limit: 10, page: 1) {
+  paginateTweets(
+    userId: "1b8285d6-bed8-4fb2-bd5c-33de911600cd"
+    limit: 10
+    page: 1
+  ) {
     nodes {
       id
       content
@@ -153,7 +171,10 @@ Checking Edit Permissions:
 
 ```graphql
 query {
-  canEditTweet(userId: "user1", tweetId: "tweet1")
+  canEditTweet(
+    userId: "1b8285d6-bed8-4fb2-bd5c-33de911600cd"
+    tweetId: "5f45e5a0-cd27-4a94-aa24-e5a64a6db7ce"
+  )
 }
 ```
 
@@ -238,12 +259,6 @@ After all bu running this, you can see the result in [localhost:2020/graphql](ht
 
 ```bash
 $ npm run start
-```
-
-If you are curious about testing the project, you can run:
-
-```bash
-$ npm run test
 ```
 
 ### Running with Docker Compose
