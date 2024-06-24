@@ -20,31 +20,41 @@ export class TweetsService {
 
   async canEditTweet(tweetId: string, userId: string): Promise<boolean> {
     const query = `
-      WITH RECURSIVE tweet_hierarchy AS (
-        SELECT t.id, t.parentTweetId, t.inheritEditPermission
-        FROM tweets t
-        WHERE t.id = $1
-        UNION ALL
-        SELECT t.id, t.parentTweetId, t.inheritEditPermission
-        FROM tweets t
-        INNER JOIN tweet_hierarchy th ON t.id = th.parentTweetId
-        WHERE th.inheritEditPermission = TRUE
-      ),
-      user_permissions AS (
-        SELECT tp.*
-        FROM tweet_permissions tp
-        WHERE tp.userId = $2
+      WITH RECURSIVE groups AS (
+          SELECT gm.groupId, gm.userId
+          FROM group_members gm
+          WHERE gm.userId = $1
+
+          UNION
+
+          SELECT gm.groupId, ug.userId
+          FROM group_members gm
+          JOIN groups ug ON gm.subGroup = ug.groupId
       )
-      SELECT 
-        CASE 
-          WHEN EXISTS (
-            SELECT 1 
-            FROM tweet_hierarchy th
-            JOIN user_permissions up ON up.tweetId = th.id
-            WHERE up.canEdit = TRUE
-          ) THEN TRUE
-          ELSE FALSE
-        END AS canEdit
+      , EditableTweets AS (
+          SELECT t.id AS tweetId, t.parentTweetId, t.inheritEditPermission
+          FROM tweets t
+          JOIN tweet_permissions tp ON t.id = tp.tweetId
+          WHERE tp.userId = $2 AND tp.canEdit = TRUE
+
+          UNION
+
+          SELECT t.id AS tweetId, t.parentTweetId, t.inheritEditPermission
+          FROM tweets t
+          JOIN tweet_permissions tp ON t.id = tp.tweetId
+          JOIN groups ug ON tp.groupId = ug.groupId
+          WHERE tp.canEdit = TRUE
+
+          UNION
+
+          SELECT t.id AS tweetId, t.parentTweetId, t.inheritEditPermission
+          FROM tweets t
+          JOIN EditableTweets vt ON t.parentTweetId = vt.tweetId
+          WHERE vt.inheritEditPermission = TRUE
+      )
+      SELECT DISTINCT t.*
+      FROM tweets t
+      JOIN EditableTweets vt ON t.id = vt.tweetId
     `;
 
     const result = await this.dataSource.query(query, [tweetId, userId]);
@@ -69,7 +79,7 @@ export class TweetsService {
 
           SELECT gm.groupId, ug.userId
           FROM group_members gm
-          JOIN groups ug ON gm.subGroupId = ug.groupId
+          JOIN groups ug ON gm.subGroup = ug.groupId
       )
       , ViewableTweets AS (
           SELECT t.id AS tweetId, t.parentTweetId, t.inheritViewPermission
@@ -148,40 +158,73 @@ export class TweetsService {
   async updateTweetPermissions(
     input: UpdateTweetPermissions,
   ): Promise<boolean> {
-    const tweet = await this.tweetsRepository.findOne({
-      where: { id: input.tweetId },
-      relations: ['permissions'],
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!tweet) {
-      throw new Error('Tweet not found');
+    try {
+      const {
+        tweetId,
+        inheritViewPermissions,
+        inheritEditPermissions,
+        viewPermissions,
+        editPermissions,
+      } = input;
+
+      const tweet = await queryRunner.manager.findOne(Tweet, {
+        where: { id: tweetId },
+        relations: ['permissions'],
+      });
+
+      if (!tweet) {
+        throw new Error('Tweet not found');
+      }
+
+      tweet.inheritViewPermission = inheritViewPermissions;
+      tweet.inheritEditPermission = inheritEditPermissions;
+      await queryRunner.manager.save(tweet);
+
+      await queryRunner.manager.delete(TweetPermissions, { tweet: tweet });
+
+      for (const userId of viewPermissions.userIds) {
+        const permission = new TweetPermissions();
+        permission.tweet = tweet;
+        permission.userId = userId;
+        permission.canView = true;
+        await queryRunner.manager.save(permission);
+      }
+
+      for (const groupId of viewPermissions.groupIds) {
+        const permission = new TweetPermissions();
+        permission.tweet = tweet;
+        permission.group = { id: groupId } as any;
+        permission.canView = true;
+        await queryRunner.manager.save(permission);
+      }
+
+      for (const userId of editPermissions.userIds) {
+        const permission = new TweetPermissions();
+        permission.tweet = tweet;
+        permission.userId = userId;
+        permission.canEdit = true;
+        await queryRunner.manager.save(permission);
+      }
+
+      for (const groupId of editPermissions.groupIds) {
+        const permission = new TweetPermissions();
+        permission.tweet = tweet;
+        permission.group = { id: groupId } as any;
+        permission.canEdit = true;
+        await queryRunner.manager.save(permission);
+      }
+
+      await queryRunner.commitTransaction();
+      return true;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new Error('Failed to update tweet permissions: ' + error.message);
+    } finally {
+      await queryRunner.release();
     }
-
-    tweet.inheritViewPermission = input.inheritViewPermissions;
-    tweet.inheritEditPermission = input.inheritEditPermissions;
-
-    await this.tweetPermissionsRepository.delete({ tweet });
-
-    const viewPermissions = input.viewPermissions.userIds.map((userId) => ({
-      tweet,
-      userId,
-      canView: true,
-      canEdit: false,
-    }));
-
-    const editPermissions = input.editPermissions.userIds.map((userId) => ({
-      tweet,
-      userId,
-      canView: true,
-      canEdit: true,
-    }));
-
-    await this.tweetPermissionsRepository.save([
-      ...viewPermissions,
-      ...editPermissions,
-    ]);
-
-    if (this.tweetsRepository.save(tweet)) return true;
-    else return false;
   }
 }
