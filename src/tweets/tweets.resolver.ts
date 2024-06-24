@@ -32,8 +32,8 @@ export class TweetsResolver {
   }
 
   @Mutation(() => Tweet)
-  async createTweet(args: CreateTweet) {
-    return this.tweetsService.createTweet(args);
+  async createTweet(@Args('input') input: CreateTweet) {
+    return this.tweetsService.createTweet(input);
   }
 
   @Mutation(() => Boolean)

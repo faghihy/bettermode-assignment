@@ -27,6 +27,7 @@ export class Tweet {
   @Column('simple-array')
   hashtags: string[];
 
+  @Field()
   @Column({
     type: 'enum',
     enum: TweetCategory,
@@ -34,18 +35,22 @@ export class Tweet {
   })
   category?: TweetCategory;
 
+  @Field()
   @Column({ nullable: true })
   location?: string;
 
+  @Field()
   @ManyToOne(() => Tweet, (tweet) => tweet.replies, { nullable: true })
   parent?: Tweet;
 
   @OneToMany(() => Tweet, (tweet) => tweet.parent)
   replies: Tweet[];
 
+  @Field()
   @Column({ default: true })
   inheritViewPermission: boolean;
 
+  @Field()
   @Column({ default: true })
   inheritEditPermission: boolean;
 
