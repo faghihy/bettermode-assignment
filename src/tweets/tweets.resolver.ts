@@ -36,15 +36,10 @@ export class TweetsResolver {
     return this.tweetsService.createTweet(args);
   }
 
-  @Mutation(() => Tweet)
+  @Mutation(() => Boolean)
   async updateTweetPermissions(
-    @Args('tweetId') tweetId: string,
-    @Args('updateTweetPermissions')
-    updateTweetPermissions: UpdateTweetPermissions,
+    @Args('input') input: UpdateTweetPermissions,
   ): Promise<boolean> {
-    return this.tweetsService.updateTweetPermissions(
-      tweetId,
-      updateTweetPermissions,
-    );
+    return this.tweetsService.updateTweetPermissions(input);
   }
 }

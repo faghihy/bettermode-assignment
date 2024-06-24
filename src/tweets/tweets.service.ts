@@ -146,11 +146,10 @@ export class TweetsService {
   }
 
   async updateTweetPermissions(
-    tweetId: string,
-    updateTweetPermissionsInput: UpdateTweetPermissions,
+    input: UpdateTweetPermissions,
   ): Promise<boolean> {
     const tweet = await this.tweetsRepository.findOne({
-      where: { id: tweetId },
+      where: { id: input.tweetId },
       relations: ['permissions'],
     });
 
@@ -158,28 +157,24 @@ export class TweetsService {
       throw new Error('Tweet not found');
     }
 
-    tweet.inheritViewPermission =
-      updateTweetPermissionsInput.inheritViewPermissions;
-    tweet.inheritEditPermission =
-      updateTweetPermissionsInput.inheritEditPermissions;
+    tweet.inheritViewPermission = input.inheritViewPermissions;
+    tweet.inheritEditPermission = input.inheritEditPermissions;
 
     await this.tweetPermissionsRepository.delete({ tweet });
 
-    const viewPermissions =
-      updateTweetPermissionsInput.viewPermissions.userIds.map((userId) => ({
-        tweet,
-        userId,
-        canView: true,
-        canEdit: false,
-      }));
+    const viewPermissions = input.viewPermissions.userIds.map((userId) => ({
+      tweet,
+      userId,
+      canView: true,
+      canEdit: false,
+    }));
 
-    const editPermissions =
-      updateTweetPermissionsInput.editPermissions.userIds.map((userId) => ({
-        tweet,
-        userId,
-        canView: true,
-        canEdit: true,
-      }));
+    const editPermissions = input.editPermissions.userIds.map((userId) => ({
+      tweet,
+      userId,
+      canView: true,
+      canEdit: true,
+    }));
 
     await this.tweetPermissionsRepository.save([
       ...viewPermissions,

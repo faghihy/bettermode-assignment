@@ -1,6 +1,6 @@
 export enum TweetCategory {
-  Sport,
-  Finance,
-  Tech,
-  News,
+  Sport = 'Sport',
+  Finance = 'Finance',
+  Tech = 'Tech',
+  News = 'News',
 }

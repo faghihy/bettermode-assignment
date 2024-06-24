@@ -36,14 +36,14 @@ input FilterTweet {
   authorId: String
   hashtag: String
   parentTweetId: String
-  category: Float
+  category: String
   location: String
 }
 
 type Mutation {
   createGroup(input: CreateGroup!): Group!
   createTweet: Tweet!
-  updateTweetPermissions(tweetId: String!, updateTweetPermissions: UpdateTweetPermissions!): Tweet!
+  updateTweetPermissions(input: UpdateTweetPermissions!): Boolean!
 }
 
 input CreateGroup {
@@ -54,6 +54,7 @@ input CreateGroup {
 }
 
 input UpdateTweetPermissions {
+  tweetId: String!
   inheritViewPermissions: Boolean!
   inheritEditPermissions: Boolean!
   viewPermissions: PermissionList!

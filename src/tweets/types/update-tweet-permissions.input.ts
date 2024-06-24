@@ -12,6 +12,9 @@ export class PermissionList {
 @InputType()
 export class UpdateTweetPermissions {
   @Field()
+  tweetId: string;
+
+  @Field()
   inheritViewPermissions: boolean;
 
   @Field()
