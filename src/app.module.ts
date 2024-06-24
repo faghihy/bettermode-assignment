@@ -22,7 +22,7 @@ import { TweetPermissions } from './tweets/entities/tweet-permissions.entity';
       port: parseInt(process.env.DATABASE_PORT, 10),
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
-      database: '8', // TODO: process.env.DATABASE_NAME
+      database: '9', //twperm
       entities: [Group, GroupMembers, Tweet, TweetPermissions],
       synchronize: true,
     }),

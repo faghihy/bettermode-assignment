@@ -4,8 +4,8 @@
 
 type GroupMembers {
   id: ID!
-  group: Group!
   userId: String
+  group: Group!
   subGroup: Group
 }
 
@@ -20,6 +20,11 @@ type Tweet {
   id: ID!
   authorId: String!
   content: String!
+  category: String!
+  location: String!
+  parent: Tweet!
+  inheritViewPermission: Boolean!
+  inheritEditPermission: Boolean!
 }
 
 type PaginatedTweet {
@@ -42,7 +47,7 @@ input FilterTweet {
 
 type Mutation {
   createGroup(input: CreateGroup!): Group!
-  createTweet: Tweet!
+  createTweet(input: CreateTweet!): Tweet!
   updateTweetPermissions(input: UpdateTweetPermissions!): Boolean!
 }
 
@@ -51,6 +56,15 @@ input CreateGroup {
   ownerId: String!
   userIds: [String!]!
   groupIds: [String!]!
+}
+
+input CreateTweet {
+  authorId: String!
+  content: String!
+  hashtags: [String!]!
+  parentTweetId: String
+  category: String
+  location: String
 }
 
 input UpdateTweetPermissions {
