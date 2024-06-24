@@ -63,4 +63,11 @@ export class GroupsService {
       await queryRunner.release();
     }
   }
+
+  async findMembersByGroupId(groupId: string): Promise<GroupMembers[]> {
+    return this.groupMembersRepository.find({
+      where: { group: { id: groupId } },
+      relations: ['subGroup'],
+    });
+  }
 }

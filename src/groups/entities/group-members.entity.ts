@@ -9,13 +9,13 @@ export class GroupMembers {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Field(() => Group)
-  @ManyToOne(() => Group, (group) => group.members)
-  group: Group;
-
   @Field({ nullable: true })
   @Column({ nullable: true })
   userId: string;
+
+  @Field(() => Group)
+  @ManyToOne(() => Group, (group) => group.members)
+  group: Group;
 
   @Field(() => Group, { nullable: true })
   @ManyToOne(() => Group, { nullable: true })
