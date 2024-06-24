@@ -17,7 +17,7 @@ export class GroupMembers {
   @Column({ nullable: true })
   userId: string;
 
-  @Field(() => GroupMembers, { nullable: true })
-  @ManyToOne(() => GroupMembers, { nullable: true })
-  subGroup: GroupMembers;
+  @Field(() => Group, { nullable: true })
+  @ManyToOne(() => Group, { nullable: true })
+  subGroup: Group;
 }
