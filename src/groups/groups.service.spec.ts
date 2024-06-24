@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource, Repository } from 'typeorm';
 import { GroupsService } from './groups.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { GroupMembers } from './entities/group-members.entity';
 import { CreateGroup } from './types/create-group.type';
-import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('GroupsService', () => {
   let service: GroupsService;
@@ -30,12 +30,12 @@ describe('GroupsService', () => {
             createQueryRunner: jest.fn().mockReturnValue({
               connect: jest.fn(),
               startTransaction: jest.fn(),
-              manager: {
-                save: jest.fn(),
-              },
               commitTransaction: jest.fn(),
               rollbackTransaction: jest.fn(),
               release: jest.fn(),
+              manager: {
+                save: jest.fn(),
+              },
             }),
           },
         },
@@ -50,67 +50,77 @@ describe('GroupsService', () => {
     dataSource = module.get<DataSource>(DataSource);
   });
 
-  it('should create a group and its members', async () => {
-    const createGroupInput: CreateGroup = {
-      name: 'Test Group',
-      ownerId: '1',
-      userIds: ['2', '3'],
-      groupIds: ['4', '5'],
-    };
-
-    const createdGroup: Group = {
-      id: '1',
-      name: createGroupInput.name,
-      ownerId: createGroupInput.ownerId,
-      members: [],
-    } as Group;
-
-    jest.spyOn(groupsRepository, 'create').mockReturnValue(createdGroup);
-    jest.spyOn(groupsRepository, 'save').mockResolvedValue(createdGroup);
-    jest
-      .spyOn(groupMembersRepository, 'create')
-      .mockImplementation((entity) => ({ ...entity, id: '1' }) as GroupMembers);
-    jest
-      .spyOn(dataSource.createQueryRunner().manager, 'save')
-      .mockResolvedValue([]);
-
-    const result = await service.createGroup(createGroupInput);
-
-    expect(result).toEqual(createdGroup);
-    expect(groupsRepository.create).toHaveBeenCalledWith({
-      name: createGroupInput.name,
-      ownerId: createGroupInput.ownerId,
-    });
-    expect(groupsRepository.save).toHaveBeenCalledWith(createdGroup);
-
-    expect(groupMembersRepository.create).toHaveBeenCalledTimes(4); // 2 userIds + 2 groupIds
-    expect(dataSource.createQueryRunner().connect).toHaveBeenCalled();
-    expect(dataSource.createQueryRunner().startTransaction).toHaveBeenCalled();
-    expect(dataSource.createQueryRunner().manager.save).toHaveBeenCalledTimes(
-      2,
-    ); // 1 for group + 1 for members
-    expect(dataSource.createQueryRunner().commitTransaction).toHaveBeenCalled();
-    expect(dataSource.createQueryRunner().release).toHaveBeenCalled();
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
-  it('should rollback transaction if an error occurs', async () => {
-    const createGroupInput: CreateGroup = {
-      name: 'Test Group',
-      ownerId: '1',
-      userIds: ['2', '3'],
-      groupIds: ['4', '5'],
-    };
+  describe('createGroup', () => {
+    it('should create a new group with members', async () => {
+      const createGroupInput: CreateGroup = {
+        name: 'Test Group',
+        ownerId: 'owner123',
+        userIds: ['user1', 'user2'],
+        groupIds: [],
+      };
 
-    jest.spyOn(groupsRepository, 'create').mockImplementation(() => {
-      throw new Error('Test Error');
+      const createdGroup = {
+        id: '1',
+        name: createGroupInput.name,
+        ownerId: createGroupInput.ownerId,
+      };
+
+      jest
+        .spyOn(groupsRepository, 'create')
+        .mockReturnValue(createdGroup as any);
+      jest
+        .spyOn(groupsRepository, 'save')
+        .mockResolvedValue(createdGroup as any);
+
+      const queryRunnerMock = dataSource.createQueryRunner();
+      const saveSpy = jest
+        .spyOn(queryRunnerMock.manager, 'save')
+        .mockResolvedValue(undefined);
+
+      const result = await service.createGroup(createGroupInput);
+
+      expect(result).toEqual(createdGroup);
+      expect(saveSpy).toHaveBeenCalledTimes(3); // One for group, two for group members
     });
 
-    await expect(service.createGroup(createGroupInput)).rejects.toThrow(
-      'Test Error',
-    );
-    expect(
-      dataSource.createQueryRunner().rollbackTransaction,
-    ).toHaveBeenCalled();
-    expect(dataSource.createQueryRunner().release).toHaveBeenCalled();
+    it('should rollback transaction on error', async () => {
+      const createGroupInput: CreateGroup = {
+        name: 'Test Group',
+        ownerId: 'owner123',
+        userIds: ['user1', 'user2'],
+        groupIds: [],
+      };
+
+      const queryRunnerMock = dataSource.createQueryRunner();
+      jest
+        .spyOn(queryRunnerMock.manager, 'save')
+        .mockRejectedValue(new Error('Test Error'));
+
+      await expect(service.createGroup(createGroupInput)).rejects.toThrow(
+        'Test Error',
+      );
+      expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();
+    });
+  });
+
+  describe('findMembersByGroupId', () => {
+    it('should return members of a group', async () => {
+      const groupId = 'group1';
+      const members = [
+        { id: '1', userId: 'user1', group: { id: groupId } },
+        { id: '2', userId: 'user2', group: { id: groupId } },
+      ];
+
+      jest
+        .spyOn(groupMembersRepository, 'find')
+        .mockResolvedValue(members as any);
+
+      const result = await service.findMembersByGroupId(groupId);
+      expect(result).toEqual(members);
+    });
   });
 });

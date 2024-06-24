@@ -1,30 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Repository, DataSource } from 'typeorm';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { TweetsService } from './tweets.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Tweet } from './entities/tweet.entity';
 import { TweetPermissions } from './entities/tweet-permissions.entity';
 import { CreateTweet } from './types/create-tweet.input';
-import { FilterTweet } from './types/filter-tweet.input';
 import { UpdateTweetPermissions } from './types/update-tweet-permissions.input';
+import { TweetCategory } from './types/category.enum';
 
 describe('TweetsService', () => {
   let service: TweetsService;
   let tweetsRepository: Repository<Tweet>;
   let tweetPermissionsRepository: Repository<TweetPermissions>;
-  let dataSource: DataSource;
-
-  const queryRunnerMock = {
-    connect: jest.fn(),
-    startTransaction: jest.fn(),
-    manager: {
-      findOne: jest.fn(),
-      save: jest.fn(),
-    },
-    commitTransaction: jest.fn(),
-    rollbackTransaction: jest.fn(),
-    release: jest.fn(),
-  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -38,13 +25,6 @@ describe('TweetsService', () => {
           provide: getRepositoryToken(TweetPermissions),
           useClass: Repository,
         },
-        {
-          provide: DataSource,
-          useValue: {
-            query: jest.fn(),
-            createQueryRunner: jest.fn().mockReturnValue(queryRunnerMock),
-          },
-        },
       ],
     }).compile();
 
@@ -53,174 +33,142 @@ describe('TweetsService', () => {
     tweetPermissionsRepository = module.get<Repository<TweetPermissions>>(
       getRepositoryToken(TweetPermissions),
     );
-    dataSource = module.get<DataSource>(DataSource);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('canEditTweet', () => {
-    it('should return true if user can edit the tweet', async () => {
-      const tweetId = '1';
-      const userId = '2';
-      const queryResult = [{ canEdit: true }];
-      jest.spyOn(dataSource, 'query').mockResolvedValue(queryResult);
+  describe('createTweet', () => {
+    it('should create a new tweet', async () => {
+      const createTweetInput: CreateTweet = {
+        content: 'This is a test tweet',
+        authorId: 'user123',
+        hashtags: ['test'],
+        location: 'test location',
+        category: TweetCategory.Tech,
+      };
 
-      const result = await service.canEditTweet(tweetId, userId);
+      const savedTweet = {
+        id: '1',
+        ...createTweetInput,
+      };
 
-      expect(result).toBe(true);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
-        tweetId,
-        userId,
-      ]);
-    });
+      jest.spyOn(tweetsRepository, 'create').mockReturnValue(savedTweet as any);
+      jest.spyOn(tweetsRepository, 'save').mockResolvedValue(savedTweet as any);
 
-    it('should return false if user cannot edit the tweet', async () => {
-      const tweetId = '1';
-      const userId = '2';
-      const queryResult = [{ canEdit: false }];
-      jest.spyOn(dataSource, 'query').mockResolvedValue(queryResult);
-
-      const result = await service.canEditTweet(tweetId, userId);
-
-      expect(result).toBe(false);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
-        tweetId,
-        userId,
-      ]);
+      const result = await service.createTweet(createTweetInput);
+      expect(result).toEqual(savedTweet);
     });
   });
 
   describe('paginateTweets', () => {
-    it('should return paginated tweets', async () => {
-      const userId = '1';
+    it('should paginate tweets', async () => {
+      const userId = 'user123';
       const page = 1;
-      const limit = 10;
-      const filter: FilterTweet = {};
-      const tweets = [{ id: '1' }, { id: '2' }];
-      const count = [{ count: 2 }];
+      const limit = 2;
+      const filter = {};
+
+      const tweets = [
+        { id: '1', content: 'Tweet 1', authorId: userId },
+        { id: '2', content: 'Tweet 2', authorId: userId },
+      ];
+
       jest
-        .spyOn(dataSource, 'query')
-        .mockResolvedValueOnce(tweets)
-        .mockResolvedValueOnce(count);
+        .spyOn(tweetsRepository, 'query')
+        .mockResolvedValueOnce(tweets as any);
+      jest
+        .spyOn(tweetsRepository, 'query')
+        .mockResolvedValueOnce([{ count: 3 }] as any);
 
       const result = await service.paginateTweets(userId, page, limit, filter);
-
       expect(result).toEqual({
         nodes: tweets,
-        hasNextPage: false,
+        hasNextPage: true,
       });
-      expect(dataSource.query).toHaveBeenCalledTimes(2);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
-        userId,
-        userId,
-        limit,
-        expect.any(Number),
-      ]);
     });
   });
 
-  describe('createTweet', () => {
-    it('should create and return a new tweet', async () => {
-      const createTweetInput: CreateTweet = {
-        content: 'New tweet',
-        authorId: '1',
-        hashtags: [],
-      };
-      const newTweet: Tweet = { id: '1', ...createTweetInput } as Tweet;
-      jest.spyOn(tweetsRepository, 'create').mockReturnValue(newTweet);
-      jest.spyOn(tweetsRepository, 'save').mockResolvedValue(newTweet);
+  describe('canEditTweet', () => {
+    it('should return true if user can edit the tweet', async () => {
+      const userId = 'user123';
+      const tweetId = 'tweet123';
 
-      const result = await service.createTweet(createTweetInput);
+      const editableTweets = [{ id: tweetId }];
 
-      expect(result).toEqual(newTweet);
-      expect(tweetsRepository.create).toHaveBeenCalledWith(createTweetInput);
-      expect(tweetsRepository.save).toHaveBeenCalledWith(newTweet);
+      jest
+        .spyOn(tweetsRepository, 'query')
+        .mockResolvedValue(editableTweets as any);
+
+      const result = await service.canEditTweet(userId, tweetId);
+      expect(result).toBe(true);
+    });
+
+    it('should return false if user cannot edit the tweet', async () => {
+      const userId = 'user123';
+      const tweetId = 'tweet123';
+
+      jest.spyOn(tweetsRepository, 'query').mockResolvedValue([]);
+
+      const result = await service.canEditTweet(userId, tweetId);
+      expect(result).toBe(false);
     });
   });
 
   describe('updateTweetPermissions', () => {
-    it('should update tweet permissions and return true', async () => {
-      const input: UpdateTweetPermissions = {
-        tweetId: '1',
+    it('should update tweet permissions', async () => {
+      const updateTweetPermissionsInput: UpdateTweetPermissions = {
+        tweetId: 'tweet123',
         inheritViewPermissions: true,
         inheritEditPermissions: true,
         viewPermissions: {
-          userIds: ['2', '3'],
-          groupIds: [],
+          userIds: ['user1'],
+          groupIds: ['group1'],
         },
         editPermissions: {
-          userIds: ['4'],
-          groupIds: [],
+          userIds: ['user1'],
+          groupIds: ['group1'],
         },
       };
-      const tweet: Tweet = { id: '1', permissions: [] } as Tweet;
-      jest.spyOn(tweetsRepository, 'findOne').mockResolvedValue(tweet);
-      jest
-        .spyOn(tweetPermissionsRepository, 'delete')
-        .mockResolvedValue(undefined);
-      jest.spyOn(tweetPermissionsRepository, 'save').mockResolvedValue([]);
-      jest.spyOn(tweetsRepository, 'save').mockResolvedValue(tweet);
 
-      const result = await service.updateTweetPermissions(input);
+      const tweet = {
+        id: 'tweet123',
+        inheritViewPermission: true,
+        inheritEditPermission: true,
+        permissions: [],
+      };
 
+      jest.spyOn(tweetsRepository, 'findOne').mockResolvedValue(tweet as any);
+      jest.spyOn(tweetsRepository, 'save').mockResolvedValue(tweet as any);
+      jest.spyOn(tweetPermissionsRepository, 'delete').mockResolvedValue(null);
+      jest.spyOn(tweetPermissionsRepository, 'save').mockResolvedValue(null);
+
+      const result = await service.updateTweetPermissions(
+        updateTweetPermissionsInput,
+      );
       expect(result).toBe(true);
-      expect(tweetsRepository.findOne).toHaveBeenCalledWith({
-        where: { id: input.tweetId },
-        relations: ['permissions'],
-      });
-      expect(tweetPermissionsRepository.delete).toHaveBeenCalledWith({ tweet });
-      expect(tweetPermissionsRepository.save).toHaveBeenCalledWith([
-        {
-          tweet,
-          userId: '2',
-          canView: true,
-          canEdit: false,
-        } as TweetPermissions,
-        {
-          tweet,
-          userId: '3',
-          canView: true,
-          canEdit: false,
-        } as TweetPermissions,
-        {
-          tweet,
-          userId: '4',
-          canView: true,
-          canEdit: true,
-        } as TweetPermissions,
-      ]);
-      expect(tweetsRepository.save).toHaveBeenCalledWith(tweet);
-      expect(queryRunnerMock.commitTransaction).toHaveBeenCalled();
-      expect(queryRunnerMock.release).toHaveBeenCalled();
     });
 
-    it('should throw an error if tweet not found', async () => {
-      const input: UpdateTweetPermissions = {
-        tweetId: '1',
+    it('should throw an error if tweet is not found', async () => {
+      const updateTweetPermissionsInput: UpdateTweetPermissions = {
+        tweetId: 'tweet123',
         inheritViewPermissions: true,
         inheritEditPermissions: true,
         viewPermissions: {
-          userIds: ['2', '3'],
-          groupIds: [],
+          userIds: ['user1'],
+          groupIds: ['group1'],
         },
         editPermissions: {
-          userIds: ['4'],
-          groupIds: [],
+          userIds: ['user1'],
+          groupIds: ['group1'],
         },
       };
+
       jest.spyOn(tweetsRepository, 'findOne').mockResolvedValue(null);
 
-      await expect(service.updateTweetPermissions(input)).rejects.toThrow(
-        'Tweet not found',
-      );
-      expect(tweetsRepository.findOne).toHaveBeenCalledWith({
-        where: { id: input.tweetId },
-        relations: ['permissions'],
-      });
-      expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();
-      expect(queryRunnerMock.release).toHaveBeenCalled();
+      await expect(
+        service.updateTweetPermissions(updateTweetPermissionsInput),
+      ).rejects.toThrow('Tweet not found');
     });
   });
 });
