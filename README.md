@@ -8,7 +8,7 @@
 
 ## Senior Back-End Engineer Project Assignment
 
-This project impliments a permission and group system for X platform. Users can create groups and set permissions on their posts (tweets) to control view/edit abilities. This project using technologies like TS, NestJS, GraphQL and PostgrSQL.
+This project impliments a permission and group system for X platform. Users can create groups and set permissions on their tweets to control view/edit abilities. This project using technologies like TS, NestJS, GraphQL and PostgrSQL.
 
 ### Prerequisites
 
@@ -26,44 +26,49 @@ This project impliments a permission and group system for X platform. Users can 
 
 ### Logic
 
-- <b>Group Management</b>: Create/Mutating groups and add users/groups
-- <b>Permission Management</b>: View/Edit and inheritence management
-- <b>Permission Check</b>: View/Edit and inheritence check
-- <b>Tweet Creation</b>: With or without parent
-- <b>Tweet Pagination</b>: Sorted by time
+- <b>Group Management</b>: Mutating groups and group members
+- <b>Tweet Management</b>: Query/Mutating tweets and permissions
 
 ### Database Schema
 
-1. Users
-
-- id: UUID
-- username: String
-
-2. Groups
+1. groups
 
 - id: UUID
 - name String
-- user_ids: JSONB
-- group_ids: JSONB
+- ownerId: String
+- members: GroupMembers[]
+
+2. group_members
+
+- id: UUID
+- group: Group
+- userId: String
+- subGroup: GroupMembers;
 
 3. tweets
 
 - id: UUID
-- author_id: UUID
-- content: Text
-- hashtags: JSONB
+- authorId: String
+- content: String
+- hashtags: String[]
 - parent_tweet_id: UUID
 - category: Enum (Sport, Finance, Tech, News)
 - location: String
-- created_at: Timestamp
+- parent: Tweet
+- replies: Tweet[]
+- inheritViewPermission: Boolean
+- inheritEditPermission: Boolean
+- permissions: TweetPermissions[]
+- createdAt: Timestamp
 
-4. Permissions
+4. tweet_permissions
 
-- tweet_id: UUID
-- inherit_view_permissions: Boolian
-- inherit_edit_permissions: Boolian
-- view_permissions: JSONB
-- edit_permissions: JSONB
+- id: UUID
+- tweet: Tweet
+- group: Group
+- userId: string
+- inherit_view_permissions: Boolean
+- inherit_edit_permissions: Boolean
 
 ### API: GraphQL Schema
 
@@ -186,12 +191,6 @@ query {
 
 ### Performance Considerations
 
-#### Caching
-
-- Redis Caching: To reduce the load on the database, we can use Redis for caching frequently accessed permissions. This significantly speeds up read operations for permissions, especially for popular tweets and large groups.
-- Implementation: The permissions for tweets are cached in Redis when they are first accessed. Subsequent reads fetch the data from Redis rather than hitting the database.
-- Invalidation: Cache invalidation is handled by setting a TTL (time-to-live) on cached permissions. Additionally, updates to permissions explicitly invalidate the relevant cache entries to ensure data consistency.
-
 #### Database Optimization
 
 - Indexes: Appropriate indexes are created on frequently queried fields such as userId, groupId, tweetId, and createdAt. This improves query performance, especially for read-heavy operations.
@@ -204,25 +203,12 @@ query {
 - Recursive Group Membership Resolution: Recursive methods for resolving group memberships are optimized to prevent excessive database queries.
 - Batch Fetching: Batch fetching techniques are used to retrieve all relevant users and groups in a single query rather than multiple round-trips to the database.
 - Permission Inheritance: Permissions inheritance logic is implemented with careful attention to minimizing the performance impact.
-- Lazy Evaluation: Permissions are evaluated lazily, meaning that they are only computed when needed rather than pre-computing them for all tweets. This reduces the upfront computation cost and spreads it out over time.
 
-#### Rate Limiting
+## Next Steps:
 
-- API Rate Limiting: Rate limiting is implemented to prevent abuse and ensure fair usage of the API. This protects the system from being overwhelmed by too many requests in a short period.
-- Leaky Bucket Algorithm: A leaky bucket algorithm is used for rate limiting, providing a balance between burst tolerance and overall request rate control.
-
-#### Query Optimization
-
-- Pagination: Pagination is implemented efficiently to handle large result sets without overwhelming the system.
-- Cursor-based Pagination: Cursor-based pagination is used instead of offset-based pagination to improve performance for deep paginations.
-- GraphQL Query Complexity Analysis: To prevent excessively complex queries that could degrade performance, a query complexity analysis tool is used to limit the depth and breadth of GraphQL queries.
-- Max Query Depth: A maximum query depth is enforced to prevent deeply nested queries from overloading the system.
-- Query Cost Analysis: A cost analysis is performed on each query to ensure it stays within acceptable limits.
-
-#### Monitoring and Alerts
-
-- Performance Monitoring: Continuous performance monitoring is implemented using tools like Prometheus and Grafana to track key performance metrics (e.g., response times, database query times, cache hit/miss ratios).
-- Alerts: Alerts are configured to notify the team of any performance degradation or anomalies, enabling quick diagnosis and resolution.
+- Performance Monitoring: Continuous performance monitoring can implement using tools like Prometheus and Grafana to track key performance metrics (e.g., response times, database query times, cache hit/miss ratios).
+- API Rate Limiting: Rate limiting can implement to prevent abuse and ensure fair usage of the API. This protects the system from being overwhelmed by too many requests in a short period.
+- Caching: The permissions for tweets can be cached in Redis when they are first accessed. Subsequent reads fetch the data from Redis rather than hitting the database.
 
 ## Installation and Running
 
