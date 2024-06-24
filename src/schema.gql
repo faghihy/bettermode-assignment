@@ -6,7 +6,7 @@ type GroupMembers {
   id: ID!
   group: Group!
   userId: String
-  subGroup: GroupMembers
+  subGroup: Group
 }
 
 type Group {

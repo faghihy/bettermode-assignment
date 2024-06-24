@@ -14,6 +14,18 @@ describe('TweetsService', () => {
   let tweetPermissionsRepository: Repository<TweetPermissions>;
   let dataSource: DataSource;
 
+  const queryRunnerMock = {
+    connect: jest.fn(),
+    startTransaction: jest.fn(),
+    manager: {
+      findOne: jest.fn(),
+      save: jest.fn(),
+    },
+    commitTransaction: jest.fn(),
+    rollbackTransaction: jest.fn(),
+    release: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -30,16 +42,7 @@ describe('TweetsService', () => {
           provide: DataSource,
           useValue: {
             query: jest.fn(),
-            createQueryRunner: jest.fn().mockReturnValue({
-              connect: jest.fn(),
-              startTransaction: jest.fn(),
-              manager: {
-                save: jest.fn(),
-              },
-              commitTransaction: jest.fn(),
-              rollbackTransaction: jest.fn(),
-              release: jest.fn(),
-            }),
+            createQueryRunner: jest.fn().mockReturnValue(queryRunnerMock),
           },
         },
       ],
@@ -157,7 +160,7 @@ describe('TweetsService', () => {
       jest
         .spyOn(tweetPermissionsRepository, 'delete')
         .mockResolvedValue(undefined);
-      //jest.spyOn(tweetPermissionsRepository, 'save').mockResolvedValue([]);
+      jest.spyOn(tweetPermissionsRepository, 'save').mockResolvedValue([]);
       jest.spyOn(tweetsRepository, 'save').mockResolvedValue(tweet);
 
       const result = await service.updateTweetPermissions(input);
@@ -169,11 +172,28 @@ describe('TweetsService', () => {
       });
       expect(tweetPermissionsRepository.delete).toHaveBeenCalledWith({ tweet });
       expect(tweetPermissionsRepository.save).toHaveBeenCalledWith([
-        { tweet, userId: '2', canView: true, canEdit: false },
-        { tweet, userId: '3', canView: true, canEdit: false },
-        { tweet, userId: '4', canView: true, canEdit: true },
+        {
+          tweet,
+          userId: '2',
+          canView: true,
+          canEdit: false,
+        } as TweetPermissions,
+        {
+          tweet,
+          userId: '3',
+          canView: true,
+          canEdit: false,
+        } as TweetPermissions,
+        {
+          tweet,
+          userId: '4',
+          canView: true,
+          canEdit: true,
+        } as TweetPermissions,
       ]);
       expect(tweetsRepository.save).toHaveBeenCalledWith(tweet);
+      expect(queryRunnerMock.commitTransaction).toHaveBeenCalled();
+      expect(queryRunnerMock.release).toHaveBeenCalled();
     });
 
     it('should throw an error if tweet not found', async () => {
@@ -199,6 +219,8 @@ describe('TweetsService', () => {
         where: { id: input.tweetId },
         relations: ['permissions'],
       });
+      expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();
+      expect(queryRunnerMock.release).toHaveBeenCalled();
     });
   });
 });

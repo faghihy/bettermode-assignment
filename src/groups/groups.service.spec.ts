@@ -65,21 +65,8 @@ describe('GroupsService', () => {
       members: [],
     } as Group;
 
-    const subGroup: Group = {
-      id: '4',
-      name: 'Sub Group',
-      ownerId: '6',
-      members: [],
-    } as Group;
-    // const groupMember: GroupMembers = {
-    //   id: '1',
-    //   group: createdGroup,
-    //   userId: '2',
-    // } as GroupMembers;
-
     jest.spyOn(groupsRepository, 'create').mockReturnValue(createdGroup);
     jest.spyOn(groupsRepository, 'save').mockResolvedValue(createdGroup);
-    jest.spyOn(groupsRepository, 'findOneBy').mockResolvedValue(subGroup);
     jest
       .spyOn(groupMembersRepository, 'create')
       .mockImplementation((entity) => ({ ...entity, id: '1' }) as GroupMembers);
