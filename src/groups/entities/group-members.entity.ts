@@ -14,10 +14,10 @@ export class GroupMembers {
   userId: string;
 
   @Field(() => Group)
-  @ManyToOne(() => Group, (group) => group.members)
+  @ManyToOne(() => Group, (group) => group.members, { eager: true })
   group: Group;
 
   @Field(() => Group, { nullable: true })
-  @ManyToOne(() => Group, { nullable: true })
+  @ManyToOne(() => Group, { nullable: true, eager: true })
   subGroup: Group;
 }
