@@ -14,6 +14,9 @@ import { Tweet } from './tweets/entities/tweet.entity';
 import { TweetsModule } from './tweets/tweets.module';
 import { TweetPermissions } from './tweets/entities/tweet-permissions.entity';
 
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -22,7 +25,7 @@ import { TweetPermissions } from './tweets/entities/tweet-permissions.entity';
       port: parseInt(process.env.DATABASE_PORT, 10),
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
-      database: '9', //twperm
+      database: process.env.DATABASE_NAME,
       entities: [Group, GroupMembers, Tweet, TweetPermissions],
       synchronize: true,
     }),
