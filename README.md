@@ -51,24 +51,20 @@ This project impliments a permission and group system for X platform. Users can 
 - authorId: String
 - content: String
 - hashtags: String[]
-- parentTweetId: UUID
+- parentId: UUID
 - category: Enum (Sport, Finance, Tech, News)
 - location: String
-- parent: Tweet
-- replies: Tweet[]
 - inheritViewPermission: Boolean
 - inheritEditPermission: Boolean
-- permissions: TweetPermissions[]
-- createdAt: Timestamp
 
 4. tweet_permissions
 
 - id: UUID
-- tweet: Tweet
-- group: Group
+- tweetId: Tweet
+- groupId: Group
 - userId: string
-- inherit_view_permissions: Boolean
-- inherit_edit_permissions: Boolean
+- canView: Boolean
+- canEdit: Boolean
 
 ### API: GraphQL Schema
 
@@ -184,13 +180,7 @@ query {
 
 - Pros: Allows users to create complex group structures, enhancing the flexibility of the permissions system.
 - Cons: Increases the complexity of permission checks, especially with nested groups. Ensuring data consistency across these groups can be challenging.
-- Decision: Used recursive methods with caching (TODO) to manage nested group memberships efficiently. This approach maintains flexibility while addressing performance and consistency concerns.
-
-#### Inheritance vs. Explicit Permissions
-
-- Pros: Simplifies permission management for users by automatically applying parent tweet permissions to replies.
-- Cons: Adds complexity to the permission check logic, as it requires evaluating the permission hierarchy.
-- Decision: Implemented lazy evaluation of inherited permissions to defer complex calculations until necessary. This reduces the performance overhead during permission updates.
+- Decision: Used recursive methods to manage nested group memberships efficiently.
 
 #### REST vs. GraphQL API
 
@@ -204,30 +194,22 @@ query {
 - Cons: Requires careful management of state and consistency across instances. Increases the complexity of the deployment and monitoring setup.
 - Decision: Adopted a microservices architecture to support horizontal scaling. Used stateless services where possible and leveraged distributed caching and database sharding to manage state and consistency.
 
-#### Pagination Strategy
-
-- Pros: More efficient for deep paginations and prevents issues with offset-based pagination, such as missing or duplicate items due to data changes.
-- Cons: Adds complexity in managing cursors and ensuring they are stateless and consistent.
-- Decision: Implemented cursor-based pagination to enhance performance and reliability for large datasets, ensuring a smooth user experience.
-
 ### Performance Considerations
 
 #### Database Optimization
 
-- Indexes: Appropriate indexes are created on frequently queried fields such as userId, groupId, tweetId, and createdAt. This improves query performance, especially for read-heavy operations.
-- Compound Indexes: Compound indexes on combinations of fields that are commonly queried together (e.g., userId and createdAt) are also created to further enhance performance.
+- Indexes: Appropriate indexes are created on frequently queried fields such as userId, groupId, tweetId. This improves query performance, especially for read-heavy operations.
 - Normalized Data Models: The database schema is designed with normalization in mind to avoid redundant data storage and to ensure efficient updates and lookups.
 - Join Optimization: The schema design minimizes the need for complex joins by structuring the data to optimize common access patterns.
 
 #### Efficient Permission Checks
 
 - Recursive Group Membership Resolution: Recursive methods for resolving group memberships are optimized to prevent excessive database queries.
-- Batch Fetching: Batch fetching techniques are used to retrieve all relevant users and groups in a single query rather than multiple round-trips to the database.
 - Permission Inheritance: Permissions inheritance logic is implemented with careful attention to minimizing the performance impact.
 
 ## Next Steps:
 
-- Performance Monitoring: Continuous performance monitoring can implement using tools like Prometheus and Grafana to track key performance metrics (e.g., response times, database query times, cache hit/miss ratios).
+- Performance Monitoring: Continuous performance monitoring can implement using tools like Prometheus and Grafana to track key performance metrics
 - API Rate Limiting: Rate limiting can implement to prevent abuse and ensure fair usage of the API. This protects the system from being overwhelmed by too many requests in a short period.
 - Caching: The permissions for tweets can be cached in Redis when they are first accessed. Subsequent reads fetch the data from Redis rather than hitting the database.
 
